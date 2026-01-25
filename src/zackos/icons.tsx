@@ -65,8 +65,7 @@ export function CloseIcon() {
 export function MaximizeIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <rect width="12" height="12" fill="#fff" stroke="#000" strokeWidth="1"/>
-      <rect x="2" y="2" width="8" height="8" fill="none" stroke="#000" strokeWidth="1"/>
+      <rect x="1" y="1" width="10" height="10" fill="#fff" stroke="#000" strokeWidth="1.5"/>
     </svg>
   )
 }
