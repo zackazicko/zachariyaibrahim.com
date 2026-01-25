@@ -141,13 +141,15 @@ export function Window({ window: win, isMobile = false, onClose, onFocus, onMove
         {isMobile ? (
           <button
             className="zackos-back-btn"
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onClose(win.id) }}
           >
             ← Back
           </button>
         ) : (
           <button
-            className="zackos-window-btn"
+            className="zackos-window-btn zackos-close-btn"
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onClose(win.id) }}
             aria-label="Close"
           >
@@ -156,7 +158,8 @@ export function Window({ window: win, isMobile = false, onClose, onFocus, onMove
         )}
         <span className="zackos-window-title">{win.title}</span>
         <button
-          className="zackos-window-btn"
+          className="zackos-window-btn zackos-maximize-btn"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onToggleMaximize(win.id) }}
           aria-label="Maximize"
         >

@@ -132,8 +132,8 @@ body {
 }
 
 .zackos-window-btn {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   background: #fff;
   border: 1px solid #000;
   cursor: pointer;
@@ -142,6 +142,8 @@ body {
   justify-content: center;
   padding: 0;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .zackos-window-btn:hover {
@@ -155,6 +157,7 @@ body {
 .zackos-window-btn svg {
   width: 10px;
   height: 10px;
+  pointer-events: none;
 }
 
 .zackos-window-content {
@@ -496,17 +499,26 @@ body {
   }
 
   .zackos-window-titlebar {
-    height: 52px;
-    padding: 0 12px;
+    height: 56px;
+    padding: 0 16px;
     cursor: default;
     background-image: none;
     background-color: #f5f5f5;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
   }
 
   .zackos-window-title {
-    font-size: 15px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 17px;
     font-weight: 600;
+    text-align: center;
+    pointer-events: none;
   }
 
   /* Hide all desktop window buttons on mobile */
@@ -516,7 +528,7 @@ body {
 
   /* Back button for mobile - prominent and easy to tap */
   .zackos-back-btn {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 6px;
     background: #fff;
@@ -528,6 +540,7 @@ body {
     font-family: inherit;
     cursor: pointer;
     box-shadow: 1px 1px 0 rgba(0,0,0,0.15);
+    -webkit-tap-highlight-color: transparent;
   }
 
   .zackos-back-btn:active {
@@ -541,9 +554,15 @@ body {
   }
 }
 
-/* Back button hidden on desktop */
+/* Back button hidden on desktop (must come after to not affect mobile) */
 .zackos-back-btn {
   display: none;
+}
+
+@media (max-width: 640px) {
+  .zackos-back-btn {
+    display: flex !important;
+  }
 }
 
 /* =============================================================================
