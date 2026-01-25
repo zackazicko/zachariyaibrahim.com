@@ -1,28 +1,12 @@
 import { Routes, Route } from 'react-router-dom'
-
-function Home() {
-  return null
-}
-
-function Ftns() {
-  return null
-}
-
-function FtnsPrivacy() {
-  return null
-}
-
-function NotFound() {
-  return null
-}
+import { Desktop } from './zackos/Desktop'
+import { PrivacyPolicy } from './PrivacyPolicy'
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/ftns" element={<Ftns />} />
-      <Route path="/ftns/privacy" element={<FtnsPrivacy />} />
-      <Route path="*" element={<NotFound />} />
+      <Route path="/ftns/privacy" element={<PrivacyPolicy />} />
+      <Route path="*" element={<Desktop />} />
     </Routes>
   )
 }

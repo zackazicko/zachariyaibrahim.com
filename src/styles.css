@@ -1,0 +1,671 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: "Chicago", "Geneva", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+}
+
+/* Desktop */
+.zackos-desktop {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #6699cc;
+  background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%235588bb' fill-opacity='0.3'%3E%3Crect x='0' y='0' width='32' height='32'/%3E%3Crect x='32' y='32' width='32' height='32'/%3E%3C/g%3E%3C/svg%3E");
+  user-select: none;
+}
+
+/* Header / Branding */
+.zackos-header {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 0;
+}
+
+.zackos-logo {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: normal;
+  color: #000;
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 999px;
+  padding: 4px 10px;
+  letter-spacing: 0.02em;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zackos-logo:hover {
+  background: #000;
+  color: #fff;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+  transform: translate(-1px, -1px);
+}
+
+/* Desktop Icons - Now absolute positioned and draggable */
+.zackos-icon {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  min-width: 72px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  touch-action: none;
+}
+
+.zackos-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.zackos-icon.selected {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px dotted #fff;
+}
+
+.zackos-icon.selected .zackos-icon-label {
+  background: #000;
+  color: #fff;
+}
+
+.zackos-icon-image {
+  pointer-events: none;
+}
+
+.zackos-icon-label {
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+  font-size: 11px;
+  text-align: center;
+  word-break: break-word;
+  max-width: 80px;
+  padding: 1px 3px;
+  pointer-events: none;
+}
+
+/* Window */
+.zackos-window {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+}
+
+.zackos-window-titlebar {
+  height: 20px;
+  background-color: #ddd;
+  background-image: url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='2' x2='4' y2='2' stroke='%23bbb' stroke-width='1'/%3E%3C/svg%3E");
+  border-bottom: 1px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+  cursor: move;
+  flex-shrink: 0;
+}
+
+.zackos-window-title {
+  font-weight: bold;
+  font-size: 11px;
+  flex: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+.zackos-window-btn {
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border: 1px solid #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.zackos-window-btn:hover {
+  background: #eee;
+}
+
+.zackos-window-btn:active {
+  background: #ccc;
+}
+
+.zackos-window-btn svg {
+  width: 10px;
+  height: 10px;
+}
+
+.zackos-window-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  overflow: hidden;
+  position: relative;
+}
+
+.zackos-window-content-title {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Resize Handles */
+.zackos-resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  z-index: 10;
+}
+
+.zackos-resize-handle.nw {
+  top: -2px;
+  left: -2px;
+  cursor: nwse-resize;
+}
+
+.zackos-resize-handle.ne {
+  top: -2px;
+  right: -2px;
+  cursor: nesw-resize;
+}
+
+.zackos-resize-handle.sw {
+  bottom: -2px;
+  left: -2px;
+  cursor: nesw-resize;
+}
+
+.zackos-resize-handle.se {
+  bottom: -2px;
+  right: -2px;
+  cursor: nwse-resize;
+}
+
+/* Notepad */
+.zackos-notepad {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.zackos-notepad-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px;
+  border-bottom: 1px solid #ccc;
+  background: #eee;
+  flex-shrink: 0;
+}
+
+.zackos-notepad-textarea {
+  flex: 1;
+  width: 100%;
+  border: none;
+  padding: 8px;
+  font-family: "Monaco", "Courier New", monospace;
+  font-size: 12px;
+  resize: none;
+  outline: none;
+}
+
+.zackos-notepad-textarea::placeholder {
+  color: #999;
+}
+
+/* Toolbar button */
+.zackos-toolbar-btn {
+  background: #fff;
+  border: 1px solid #000;
+  padding: 2px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-family: inherit;
+}
+
+.zackos-toolbar-btn:hover {
+  background: #eee;
+}
+
+.zackos-toolbar-btn:active {
+  background: #ccc;
+}
+
+/* Sketchpad */
+.zackos-sketchpad {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.zackos-sketchpad-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-bottom: 1px solid #ccc;
+  background: #eee;
+  flex-shrink: 0;
+}
+
+.zackos-color-btn {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  cursor: pointer;
+  padding: 0;
+  outline: 1px solid #000;
+}
+
+.zackos-color-btn:hover {
+  transform: scale(1.1);
+}
+
+.zackos-color-btn.selected {
+  border: 2px solid #000;
+  outline: 2px solid #fff;
+}
+
+.zackos-sketchpad-canvas-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.zackos-sketchpad-canvas {
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* =============================================================================
+   PAGE CONTENT (About, Projects, Ftns)
+   ============================================================================= */
+
+.zackos-page {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  user-select: text;
+}
+
+.zackos-page-section {
+  margin-bottom: 20px;
+}
+
+.zackos-page-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #000;
+}
+
+.zackos-page-subtitle {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.zackos-page-heading {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #000;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+}
+
+.zackos-page-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.zackos-page-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.zackos-page-links li {
+  margin-bottom: 6px;
+}
+
+.zackos-page-links a,
+.zackos-page a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.zackos-page-links a:hover,
+.zackos-page a:hover {
+  text-decoration: underline;
+}
+
+/* Profile photo (uncomment in AboutContent to use) */
+.zackos-profile-photo {
+  width: 80px;
+  height: 80px;
+  border: 1px solid #000;
+  margin-bottom: 12px;
+  object-fit: cover;
+}
+
+/* Projects */
+.zackos-project {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.zackos-project:last-child {
+  border-bottom: none;
+}
+
+.zackos-project-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #000;
+}
+
+.zackos-project-image {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border: 1px solid #ccc;
+  margin-bottom: 8px;
+}
+
+.zackos-project-link {
+  display: inline-block;
+  font-size: 11px;
+  color: #0066cc;
+  text-decoration: none;
+  border: 1px solid #0066cc;
+  padding: 4px 8px;
+  margin-top: 4px;
+}
+
+.zackos-project-link:hover {
+  background: #0066cc;
+  color: #fff;
+}
+
+/* Typewriter cursor */
+.zackos-cursor {
+  display: inline;
+  font-weight: normal;
+  color: #000;
+  animation: blink 0.7s step-end infinite;
+  margin-left: 1px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* =============================================================================
+   MOBILE RESPONSIVE (max-width: 640px)
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  /* Icon grid layout on mobile */
+  .zackos-desktop {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    padding-top: 40px;
+    gap: 0;
+  }
+
+  .zackos-header {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    left: auto;
+  }
+
+  .zackos-icons-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .zackos-icon {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    min-width: auto;
+    padding: 12px 8px;
+    touch-action: manipulation;
+  }
+
+  .zackos-icon-image svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .zackos-icon-label {
+    font-size: 10px;
+    max-width: 70px;
+  }
+
+  /* Full-screen windows on mobile */
+  .zackos-window {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+    box-shadow: none;
+  }
+
+  .zackos-window-titlebar {
+    height: 44px;
+    padding: 0 8px;
+    cursor: default;
+  }
+
+  .zackos-window-title {
+    font-size: 14px;
+  }
+
+  .zackos-window-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .zackos-window-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Back button for mobile */
+  .zackos-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: 1px solid #000;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .zackos-back-btn:active {
+    background: #ddd;
+  }
+
+  /* Hide resize handles on mobile */
+  .zackos-resize-handle {
+    display: none !important;
+  }
+
+  /* Hide maximize button on mobile (always fullscreen) */
+  .zackos-window-btn[aria-label="Maximize"] {
+    display: none;
+  }
+}
+
+/* Back button hidden on desktop */
+.zackos-back-btn {
+  display: none;
+}
+
+/* =============================================================================
+   PRIVACY POLICY PAGE
+   Standalone dark page with Inter font, separate from zackOS UI.
+   ============================================================================= */
+
+.privacy-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #000;
+  color: #fff;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.privacy-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+@media (max-width: 480px) {
+  .privacy-container {
+    padding: 32px 20px 64px;
+  }
+}
+
+.privacy-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 480px) {
+  .privacy-title {
+    font-size: 20px;
+  }
+}
+
+.privacy-date {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.privacy-meta {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 40px;
+  line-height: 1.8;
+}
+
+.privacy-meta strong {
+  color: #ccc;
+  font-weight: 500;
+}
+
+.privacy-section {
+  margin-bottom: 32px;
+}
+
+.privacy-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.privacy-section p,
+.privacy-section ul {
+  font-size: 14px;
+  color: #bbb;
+  margin-bottom: 12px;
+}
+
+.privacy-section ul {
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.privacy-section li {
+  margin-bottom: 8px;
+  color: #bbb;
+}
+
+.privacy-section a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.privacy-section a:hover {
+  color: #ccc;
+}
+
+.privacy-footer {
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid #333;
+}
+
+.privacy-footer a {
+  font-size: 13px;
+  color: #666;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.privacy-footer a:hover {
+  color: #fff;
+}
