@@ -261,9 +261,14 @@ export function NotepadContent() {
     URL.revokeObjectURL(url)
   }
 
+  // Word and character counts
+  const charCount = text.length
+  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+
   return (
     <div className="zackos-notepad">
       <div className="zackos-notepad-toolbar">
+        <span className="zackos-notepad-stats">{wordCount} words, {charCount} chars</span>
         <button className="zackos-toolbar-btn" onClick={handleDownload} title="Download as .md">
           <DownloadIcon />
         </button>
@@ -280,13 +285,16 @@ export function NotepadContent() {
 
 const COLORS = ['#000000', '#ff0000', '#00aa00', '#0000ff', '#ff8800']
 const PEN_WIDTH = 3
+const MAX_UNDO_STATES = 10
 
 export function SketchpadContent() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [color, setColor] = useState(COLORS[0])
+  const [isEraser, setIsEraser] = useState(false)
   const [isDrawing, setIsDrawing] = useState(false)
   const lastPos = useRef<{ x: number; y: number } | null>(null)
+  const undoStack = useRef<ImageData[]>([])
 
   // Restore from localStorage on mount
   useEffect(() => {
@@ -383,7 +391,27 @@ export function SketchpadContent() {
     }
   }
 
+  const saveUndoState = useCallback(() => {
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext('2d')
+    if (!ctx || !canvas) return
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    undoStack.current = [...undoStack.current.slice(-(MAX_UNDO_STATES - 1)), imageData]
+  }, [])
+
+  const handleUndo = useCallback(() => {
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext('2d')
+    if (!ctx || !canvas || undoStack.current.length === 0) return
+    const lastState = undoStack.current.pop()
+    if (lastState) {
+      ctx.putImageData(lastState, 0, 0)
+      saveCanvas()
+    }
+  }, [saveCanvas])
+
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    saveUndoState()
     e.currentTarget.setPointerCapture(e.pointerId)
     setIsDrawing(true)
     lastPos.current = getPos(e)
@@ -397,8 +425,8 @@ export function SketchpadContent() {
 
     const pos = getPos(e)
     ctx.beginPath()
-    ctx.strokeStyle = color
-    ctx.lineWidth = PEN_WIDTH
+    ctx.strokeStyle = isEraser ? '#ffffff' : color
+    ctx.lineWidth = isEraser ? PEN_WIDTH * 4 : PEN_WIDTH
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.moveTo(lastPos.current.x, lastPos.current.y)
@@ -431,6 +459,7 @@ export function SketchpadContent() {
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
     if (!ctx || !canvas) return
+    saveUndoState()
     ctx.fillStyle = '#fff'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     saveCanvas()
@@ -442,12 +471,22 @@ export function SketchpadContent() {
         {COLORS.map(c => (
           <button
             key={c}
-            className={`zackos-color-btn ${color === c ? 'selected' : ''}`}
+            className={`zackos-color-btn ${color === c && !isEraser ? 'selected' : ''}`}
             style={{ backgroundColor: c }}
-            onClick={() => setColor(c)}
+            onClick={() => { setColor(c); setIsEraser(false) }}
             title={c}
           />
         ))}
+        <button
+          className={`zackos-toolbar-btn ${isEraser ? 'selected' : ''}`}
+          onClick={() => setIsEraser(!isEraser)}
+          title="Eraser"
+        >
+          Eraser
+        </button>
+        <button className="zackos-toolbar-btn" onClick={handleUndo} title="Undo">
+          Undo
+        </button>
         <button className="zackos-toolbar-btn" onClick={handleClear} title="Clear">
           Clear
         </button>

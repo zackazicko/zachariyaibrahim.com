@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import type { AppId, WindowState, DesktopIcon, IconPosition } from './types'
 import { PersonIcon, FolderIcon, AppIcon, NotepadIcon, SketchpadIcon } from './icons'
 import { Window } from './Window'
+import { BootScreen } from './BootScreen'
 
 const MOBILE_BREAKPOINT = 640
 
@@ -48,7 +49,7 @@ const WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
 function getDefaultIconPositions(): Record<AppId, IconPosition> {
   const positions: Record<string, IconPosition> = {}
   ICONS.forEach((icon, i) => {
-    positions[icon.id] = { x: 16, y: 16 + i * 80 }
+    positions[icon.id] = { x: 16, y: 32 + i * 80 } // Account for menubar height
   })
   return positions as Record<AppId, IconPosition>
 }
@@ -66,8 +67,32 @@ function getIcon(type: DesktopIcon['icon']) {
 let windowIdCounter = 0
 let topZIndex = 1
 
+function MenuBar() {
+  const [time, setTime] = useState(() => {
+    const now = new Date()
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  })
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      setTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`)
+    }
+    const interval = setInterval(updateTime, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="zackos-menubar">
+      <span className="zackos-menubar-brand">zackOS</span>
+      <span className="zackos-menubar-clock">{time}</span>
+    </div>
+  )
+}
+
 export function Desktop() {
   const isMobile = useIsMobile()
+  const [isBooting, setIsBooting] = useState(true)
   const [windows, setWindows] = useState<WindowState[]>([])
   const [iconPositions, setIconPositions] = useState<Record<AppId, IconPosition>>(getDefaultIconPositions)
   const [selectedIcon, setSelectedIcon] = useState<AppId | null>(null)
@@ -221,11 +246,13 @@ export function Desktop() {
     )
   })
 
+  if (isBooting) {
+    return <BootScreen onComplete={() => setIsBooting(false)} />
+  }
+
   return (
     <div className="zackos-desktop" onClick={handleDesktopClick}>
-      <div className="zackos-header">
-        <span className="zackos-logo">zackOS</span>
-      </div>
+      <MenuBar />
       {isMobile ? (
         <div className="zackos-icons-grid">{iconElements}</div>
       ) : (

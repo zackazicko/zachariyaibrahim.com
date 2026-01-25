@@ -15,6 +15,106 @@ body {
   font-size: 12px;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: unset;
+  cursor: default;
+}
+
+/* Custom Cursors */
+.zackos-desktop {
+  cursor: default;
+}
+
+.zackos-icon,
+.zackos-window-btn,
+.zackos-toolbar-btn,
+.zackos-color-btn,
+.zackos-back-btn,
+.zackos-menubar-brand,
+.zackos-project-link,
+a {
+  cursor: pointer;
+}
+
+.zackos-window-titlebar {
+  cursor: grab;
+}
+
+.zackos-window-titlebar:active {
+  cursor: grabbing;
+}
+
+.zackos-notepad-textarea,
+.zackos-page {
+  cursor: text;
+}
+
+.zackos-sketchpad-canvas {
+  cursor: crosshair;
+}
+
+/* Boot Screen */
+.zackos-boot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+}
+
+.zackos-boot.fade-out {
+  opacity: 0;
+}
+
+.zackos-boot-content {
+  text-align: center;
+}
+
+.zackos-boot-logo {
+  font-size: 32px;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 32px;
+  letter-spacing: 0.05em;
+}
+
+.zackos-boot-progress {
+  width: 200px;
+}
+
+.zackos-boot-progress-bar {
+  height: 8px;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.zackos-boot-progress-fill {
+  height: 100%;
+  background: #6699cc;
+  transition: width 0.03s linear;
+}
+
+.zackos-boot-status {
+  margin-top: 12px;
+  font-size: 11px;
+  color: #888;
+}
+
+.zackos-boot-welcome {
+  font-size: 14px;
+  color: #fff;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Desktop */
@@ -27,34 +127,34 @@ body {
   user-select: none;
 }
 
-/* Header / Branding */
-.zackos-header {
+/* Menubar */
+.zackos-menubar {
   position: absolute;
-  top: 12px;
-  right: 16px;
-  z-index: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 22px;
+  background: #ddd;
+  background-image: url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='2' x2='4' y2='2' stroke='%23ccc' stroke-width='1'/%3E%3C/svg%3E");
+  border-bottom: 1px solid #999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  z-index: 100;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-.zackos-logo {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: normal;
+.zackos-menubar-brand {
+  font-size: 12px;
+  font-weight: bold;
   color: #000;
-  background: #fff;
-  border: 1px solid #000;
-  border-radius: 999px;
-  padding: 4px 10px;
-  letter-spacing: 0.02em;
-  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-  cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-.zackos-logo:hover {
-  background: #000;
-  color: #fff;
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
-  transform: translate(-1px, -1px);
+.zackos-menubar-clock {
+  font-size: 11px;
+  color: #000;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Desktop Icons - Now absolute positioned and draggable */
@@ -129,6 +229,7 @@ body {
   flex: 1;
   text-align: center;
   pointer-events: none;
+  color: #000;
 }
 
 .zackos-window-btn {
@@ -217,11 +318,19 @@ body {
 
 .zackos-notepad-toolbar {
   display: flex;
-  justify-content: flex-end;
-  padding: 4px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
   border-bottom: 1px solid #ccc;
   background: #eee;
   flex-shrink: 0;
+  gap: 8px;
+}
+
+.zackos-notepad-stats {
+  font-size: 10px;
+  color: #666;
+  font-variant-numeric: tabular-nums;
 }
 
 .zackos-notepad-textarea {
@@ -258,6 +367,11 @@ body {
 
 .zackos-toolbar-btn:active {
   background: #ccc;
+}
+
+.zackos-toolbar-btn.selected {
+  background: #000;
+  color: #fff;
 }
 
 /* Sketchpad */
@@ -447,16 +561,22 @@ body {
   .zackos-desktop {
     display: flex;
     flex-direction: column;
-    padding: 20px;
-    padding-top: 40px;
+    padding: 16px;
+    padding-top: 30px;
     gap: 0;
   }
 
-  .zackos-header {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    left: auto;
+  .zackos-menubar {
+    height: 28px;
+    padding: 0 12px;
+  }
+
+  .zackos-menubar-brand {
+    font-size: 13px;
+  }
+
+  .zackos-menubar-clock {
+    font-size: 12px;
   }
 
   .zackos-icons-grid {
@@ -488,12 +608,12 @@ body {
   /* Full-screen windows on mobile */
   .zackos-window {
     position: fixed !important;
-    top: 0 !important;
+    top: 28px !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
     width: 100% !important;
-    height: 100% !important;
+    height: calc(100% - 28px) !important;
     border: none;
     box-shadow: none;
   }
@@ -517,6 +637,7 @@ body {
     transform: translateX(-50%);
     font-size: 17px;
     font-weight: 600;
+    color: #000;
     text-align: center;
     pointer-events: none;
   }
@@ -532,6 +653,7 @@ body {
     align-items: center;
     gap: 6px;
     background: #fff;
+    color: #000;
     border: 1px solid #000;
     border-radius: 6px;
     padding: 10px 16px;

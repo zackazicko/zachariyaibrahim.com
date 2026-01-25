@@ -5,6 +5,7 @@ import { AboutContent, ProjectsContent, FtnsContent, NotepadContent, SketchpadCo
 
 const MIN_WIDTH = 240
 const MIN_HEIGHT = 160
+const MENUBAR_HEIGHT = 22
 
 interface WindowProps {
   window: WindowState
@@ -33,7 +34,8 @@ export function Window({ window: win, isMobile = false, onClose, onFocus, onMove
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragOffset.current) return
     const newX = e.clientX - dragOffset.current.x
-    const newY = e.clientY - dragOffset.current.y
+    // Prevent dragging above the menubar
+    const newY = Math.max(MENUBAR_HEIGHT, e.clientY - dragOffset.current.y)
     onMove(win.id, newX, newY)
   }, [win.id, onMove])
 
@@ -97,6 +99,15 @@ export function Window({ window: win, isMobile = false, onClose, onFocus, onMove
         newY = bounds.y + bounds.h - MIN_HEIGHT
       }
       newH = MIN_HEIGHT
+    }
+    
+    // Prevent resizing above menubar
+    if (newY < MENUBAR_HEIGHT) {
+      const overflow = MENUBAR_HEIGHT - newY
+      newY = MENUBAR_HEIGHT
+      if (handle === 'nw' || handle === 'ne') {
+        newH = Math.max(MIN_HEIGHT, newH - overflow)
+      }
     }
 
     onResize(win.id, newX, newY, newW, newH)
