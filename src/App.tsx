@@ -8,6 +8,10 @@ function Ftns() {
   return null
 }
 
+function FtnsPrivacy() {
+  return null
+}
+
 function NotFound() {
   return null
 }
@@ -17,6 +21,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/ftns" element={<Ftns />} />
+      <Route path="/ftns/privacy" element={<FtnsPrivacy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   )
