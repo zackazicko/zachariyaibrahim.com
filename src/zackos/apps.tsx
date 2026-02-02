@@ -119,7 +119,7 @@ export function AboutContent() {
       <div className="zackos-page-section">
         <p className="zackos-page-text">
           {/* Write your bio here */}
-          Welcome to my personal site. ZackOS. This is where I will be sharing pieces of projects and other things I am working on. Feel free to look around, use some of the high-tech apps, and make ZackOS your own.
+          Welcome to my personal site, zackOS. This is where I publish projects and maintain my portfolio. App icons are draggable, windows are resizable, and all thoughts are my own. Feel free to look around, use some of the high-tech apps (notepad), and make zackOS your own. 
         </p>
       </div>
 
@@ -170,15 +170,16 @@ export function ProjectsContent() {
         */}
         <h2 className="zackos-project-title">ftns.</h2>
         <p className="zackos-page-text">
-          ftns. is an app I am working on to simplify workout entry and tracking. It distills the experience of a "workout tracker app" into the simplest form possible. It's free! Feel free to download it via TestFlight link and give me some feedback. 
+          ftns. is a fitness tracking app that aims to simplify workout entry and tracking. It distills the experience of a "fitness" tracker app" into the simplest form possible. Download it via the link belowand give me some feedback. 
+          I built this app with deep focus on the user experience; removing every unnecessary click and friction between the user and the end goal of tracking exercises. It is built to be easier than logging a workout into your notes app, but provide historical data and insights to enable you to see progress and continuously improve. ftns. solves a very specific painpoint I have exprienced in my years at the gym, I do not want to carry around a notebook and pen (too analog), I do not want an AI slop workout app (don't tell me what to lift today), and I do not want to put workouts into my notes app (no insights over time). 
         </p>
         <a 
-          href="https://testflight.apple.com/join/TTtrbnk9" 
+          href="https://apps.apple.com/us/app/ftns/id6756637536" 
           target="_blank" 
           rel="noopener noreferrer"
           className="zackos-project-link"
         >
-          TestFlight Link
+          App Store Link
         </a>
       </div>
 
