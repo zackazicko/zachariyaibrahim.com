@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { AppId, WindowState, DesktopIcon, IconPosition } from './types'
-import { PersonIcon, FolderIcon, AppIcon, NotepadIcon, SketchpadIcon, GermIcon, CloseIcon, MaximizeIcon } from './icons'
+import { PersonIcon, FolderIcon, AppIcon, NotepadIcon, SketchpadIcon, GermIcon } from './icons'
 import { Window } from './Window'
 import { BootScreen } from './BootScreen'
 
@@ -71,13 +71,7 @@ function getIcon(type: DesktopIcon['icon']) {
 let windowIdCounter = 0
 let topZIndex = 1
 
-interface MenuBarProps {
-  maximizedWindow?: WindowState
-  onClose?: (id: string) => void
-  onToggleMaximize?: (id: string) => void
-}
-
-function MenuBar({ maximizedWindow, onClose, onToggleMaximize }: MenuBarProps) {
+function MenuBar() {
   const [time, setTime] = useState(() => {
     const now = new Date()
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
@@ -94,33 +88,8 @@ function MenuBar({ maximizedWindow, onClose, onToggleMaximize }: MenuBarProps) {
 
   return (
     <div className="zackos-menubar">
-      <div className="zackos-menubar-left">
-        <span className="zackos-menubar-brand">zackOS</span>
-        {maximizedWindow && (
-          <span className="zackos-menubar-title">{maximizedWindow.title}</span>
-        )}
-      </div>
-      <div className="zackos-menubar-right">
-        {maximizedWindow && onClose && onToggleMaximize && (
-          <div className="zackos-menubar-controls">
-            <button
-              className="zackos-menubar-btn"
-              onClick={() => onToggleMaximize(maximizedWindow.id)}
-              title="Restore"
-            >
-              <MaximizeIcon />
-            </button>
-            <button
-              className="zackos-menubar-btn"
-              onClick={() => onClose(maximizedWindow.id)}
-              title="Close"
-            >
-              <CloseIcon />
-            </button>
-          </div>
-        )}
-        <span className="zackos-menubar-clock">{time}</span>
-      </div>
+      <span className="zackos-menubar-brand">zackOS</span>
+      <span className="zackos-menubar-clock">{time}</span>
     </div>
   )
 }
@@ -281,22 +250,12 @@ export function Desktop() {
     )
   })
 
-  if (isBooting) {
-    return <BootScreen onComplete={() => setIsBooting(false)} />
-  }
-
-  // Find the topmost maximized window
-  const maximizedWindow = windows
-    .filter(w => w.isMaximized)
-    .sort((a, b) => b.zIndex - a.zIndex)[0]
+  const hasMaximized = windows.some(w => w.isMaximized)
 
   return (
     <div className="zackos-desktop" onClick={handleDesktopClick}>
-      <MenuBar 
-        maximizedWindow={maximizedWindow}
-        onClose={closeWindow}
-        onToggleMaximize={toggleMaximize}
-      />
+      {isBooting && <BootScreen onComplete={() => setIsBooting(false)} />}
+      {!hasMaximized && <MenuBar />}
       {isMobile ? (
         <div className="zackos-icons-grid">{iconElements}</div>
       ) : (

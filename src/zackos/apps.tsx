@@ -6,87 +6,80 @@ import { DownloadIcon } from './icons'
    Provides typewriter animation for content pages.
    ============================================================================= */
 
-function TypedPage({ children, speed = 12 }: { children: React.ReactNode; speed?: number }) {
+const animatedPages = new Set<string>()
+
+function countChars(node: React.ReactNode): number {
+  if (node == null || typeof node === 'boolean') return 0
+  if (typeof node === 'string') return node.length
+  if (typeof node === 'number') return String(node).length
+  if (Array.isArray(node)) return node.reduce((sum, n) => sum + countChars(n), 0)
+  if (React.isValidElement(node) && node.props.children) {
+    return countChars(node.props.children)
+  }
+  return 0
+}
+
+function processNode(node: React.ReactNode, remaining: number): [React.ReactNode, number] {
+  if (remaining <= 0) return [null, 0]
+  if (node == null || typeof node === 'boolean') return [node, remaining]
+
+  if (typeof node === 'string') {
+    if (node.length <= remaining) return [node, remaining - node.length]
+    return [node.slice(0, remaining), 0]
+  }
+
+  if (typeof node === 'number') {
+    const str = String(node)
+    if (str.length <= remaining) return [node, remaining - str.length]
+    return [str.slice(0, remaining), 0]
+  }
+
+  if (Array.isArray(node)) {
+    const result: React.ReactNode[] = []
+    let left = remaining
+    for (let i = 0; i < node.length && left > 0; i++) {
+      const [processed, newLeft] = processNode(node[i], left)
+      if (processed != null) result.push(processed)
+      left = newLeft
+    }
+    return [result, left]
+  }
+
+  if (React.isValidElement(node)) {
+    const { children, ...props } = node.props
+    if (children == null) return [node, remaining]
+    const [processedChildren, left] = processNode(children, remaining)
+    return [React.cloneElement(node, props, processedChildren), left]
+  }
+
+  return [node, remaining]
+}
+
+function TypedPage({ children, speed = 12, pageId }: { children: React.ReactNode; speed?: number; pageId: string }) {
+  const skip = useRef(animatedPages.has(pageId))
   const [charCount, setCharCount] = useState(0)
-  const [isComplete, setIsComplete] = useState(false)
-
-  useEffect(() => {
-    if (isComplete) return
-    const timer = setInterval(() => {
-      setCharCount(c => c + 1)
-    }, speed)
-    return () => clearInterval(timer)
-  }, [speed, isComplete])
-
-  // Count total characters in tree
-  function countChars(node: React.ReactNode): number {
-    if (node == null || typeof node === 'boolean') return 0
-    if (typeof node === 'string') return node.length
-    if (typeof node === 'number') return String(node).length
-    if (Array.isArray(node)) return node.reduce((sum, n) => sum + countChars(n), 0)
-    if (React.isValidElement(node) && node.props.children) {
-      return countChars(node.props.children)
-    }
-    return 0
-  }
-
-  // Recursively process nodes, limiting visible characters
-  function processNode(node: React.ReactNode, remaining: number): [React.ReactNode, number] {
-    if (remaining <= 0) return [null, 0]
-    if (node == null || typeof node === 'boolean') return [node, remaining]
-    
-    if (typeof node === 'string') {
-      if (node.length <= remaining) {
-        return [node, remaining - node.length]
-      }
-      return [node.slice(0, remaining), 0]
-    }
-    
-    if (typeof node === 'number') {
-      const str = String(node)
-      if (str.length <= remaining) {
-        return [node, remaining - str.length]
-      }
-      return [str.slice(0, remaining), 0]
-    }
-    
-    if (Array.isArray(node)) {
-      const result: React.ReactNode[] = []
-      let left = remaining
-      for (let i = 0; i < node.length && left > 0; i++) {
-        const [processed, newLeft] = processNode(node[i], left)
-        if (processed != null) result.push(processed)
-        left = newLeft
-      }
-      return [result, left]
-    }
-    
-    if (React.isValidElement(node)) {
-      const { children, ...props } = node.props
-      if (children == null) {
-        return [node, remaining]
-      }
-      const [processedChildren, left] = processNode(children, remaining)
-      return [React.cloneElement(node, props, processedChildren), left]
-    }
-    
-    return [node, remaining]
-  }
-
   const totalChars = countChars(children)
-  
+  const done = skip.current || charCount >= totalChars
+
   useEffect(() => {
-    if (charCount >= totalChars) {
-      setIsComplete(true)
-    }
-  }, [charCount, totalChars])
+    animatedPages.add(pageId)
+  }, [pageId])
+
+  useEffect(() => {
+    if (skip.current || done) return
+    const timer = setInterval(() => setCharCount(c => c + 1), speed)
+    return () => clearInterval(timer)
+  }, [speed, done])
+
+  if (skip.current) {
+    return <div className="zackos-page">{children}</div>
+  }
 
   const [processed] = processNode(children, charCount)
-  
   return (
     <div className="zackos-page">
       {processed}
-      {!isComplete && <span className="zackos-cursor">|</span>}
+      {!done && <span className="zackos-cursor">|</span>}
     </div>
   )
 }
@@ -98,7 +91,7 @@ function TypedPage({ children, speed = 12 }: { children: React.ReactNode; speed?
 
 export function AboutContent() {
   return (
-    <TypedPage>
+    <TypedPage pageId="about">
       {/* PROFILE SECTION */}
       <div className="zackos-page-section">
         {/* Uncomment and add your photo:
@@ -156,7 +149,7 @@ export function AboutContent() {
 
 export function ProjectsContent() {
   return (
-    <TypedPage>
+    <TypedPage pageId="projects">
       <h1 className="zackos-page-title">Projects</h1>
       
       {/* PROJECT 1 */}
@@ -195,7 +188,7 @@ export function ProjectsContent() {
 
 export function FtnsContent() {
   return (
-    <TypedPage>
+    <TypedPage pageId="ftns">
       <h1 className="zackos-page-title">ftns.</h1>
       
       <div className="zackos-page-section">
@@ -230,7 +223,7 @@ export function FtnsContent() {
 
 export function NoslopContent() {
   return (
-    <TypedPage>
+    <TypedPage pageId="noslop">
       <h1 className="zackos-page-title">NOSLOP.</h1>
       
       <div className="zackos-page-section">

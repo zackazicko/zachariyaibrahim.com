@@ -58,9 +58,12 @@ a {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #1a1a2e;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
+  z-index: 99999;
   justify-content: center;
   z-index: 9999;
   transition: opacity 0.4s ease;
@@ -68,53 +71,51 @@ a {
 
 .zackos-boot.fade-out {
   opacity: 0;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition: opacity 0.6s ease-out, backdrop-filter 0.6s ease-out, -webkit-backdrop-filter 0.6s ease-out;
+  pointer-events: none;
 }
 
 .zackos-boot-content {
   text-align: center;
 }
 
-.zackos-boot-logo {
-  font-size: 32px;
-  font-weight: bold;
+.zackos-boot-icons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  padding: 0 24px;
+}
+
+.zackos-boot-icon {
+  font-size: 18px;
   color: #fff;
-  margin-bottom: 32px;
-  letter-spacing: 0.05em;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.zackos-boot-progress {
-  width: 200px;
-}
-
-.zackos-boot-progress-bar {
-  height: 8px;
-  background: #333;
-  border: 1px solid #555;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.zackos-boot-progress-fill {
-  height: 100%;
-  background: #6699cc;
-  transition: width 0.03s linear;
-}
-
-.zackos-boot-status {
-  margin-top: 12px;
-  font-size: 11px;
-  color: #888;
+.zackos-boot-icon.visible {
+  opacity: 0.7;
+  transform: translateY(0);
 }
 
 .zackos-boot-welcome {
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 500;
   color: #fff;
-  animation: fadeIn 0.3s ease;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.zackos-boot-welcome.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Desktop */
@@ -143,45 +144,6 @@ a {
   padding: 0 8px;
   z-index: 10000;
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-
-.zackos-menubar-left,
-.zackos-menubar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.zackos-menubar-title {
-  font-size: 12px;
-  color: #000;
-  font-weight: 500;
-}
-
-.zackos-menubar-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.zackos-menubar-btn {
-  width: 16px;
-  height: 16px;
-  border: 1px solid #999;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-}
-
-.zackos-menubar-btn:hover {
-  background: #eee;
-}
-
-.zackos-menubar-btn:active {
-  background: #ccc;
 }
 
 .zackos-menubar-brand {
@@ -250,54 +212,62 @@ a {
 }
 
 .zackos-window-titlebar {
-  height: 20px;
-  background-color: #ddd;
-  background-image: url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='2' x2='4' y2='2' stroke='%23bbb' stroke-width='1'/%3E%3C/svg%3E");
-  border-bottom: 1px solid #000;
+  height: 28px;
+  background: #e8e8e8;
+  border-bottom: 1px solid #c0c0c0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 2px;
+  padding: 0 8px;
   cursor: move;
   flex-shrink: 0;
 }
 
+.zackos-window-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.zackos-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  padding: 0;
+  transition: filter 0.15s ease;
+}
+
+.zackos-dot:hover {
+  filter: brightness(0.85);
+}
+
+.zackos-dot:active {
+  filter: brightness(0.7);
+}
+
+.zackos-dot-close {
+  background: #ff5f57;
+}
+
+.zackos-dot-maximize {
+  background: #28c840;
+}
+
 .zackos-window-title {
-  font-weight: bold;
+  font-weight: 600;
   font-size: 11px;
   flex: 1;
   text-align: center;
   pointer-events: none;
-  color: #000;
+  color: #333;
 }
 
-.zackos-window-btn {
-  width: 16px;
-  height: 16px;
-  background: #fff;
-  border: 1px solid #000;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
+.zackos-window-title-spacer {
+  width: 30px;
   flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-}
-
-.zackos-window-btn:hover {
-  background: #eee;
-}
-
-.zackos-window-btn:active {
-  background: #ccc;
-}
-
-.zackos-window-btn svg {
-  width: 10px;
-  height: 10px;
-  pointer-events: none;
 }
 
 .zackos-window-content {
@@ -618,10 +588,6 @@ a {
     font-size: 12px;
   }
 
-  .zackos-menubar-title {
-    font-size: 13px;
-  }
-
   .zackos-menubar-btn {
     width: 20px;
     height: 20px;
@@ -667,12 +633,11 @@ a {
   }
 
   .zackos-window-titlebar {
-    height: 56px;
+    height: 48px;
     padding: 0 16px;
     cursor: default;
-    background-image: none;
-    background-color: #f5f5f5;
-    border-bottom: 1px solid #ddd;
+    background: #e8e8e8;
+    border-bottom: 1px solid #c0c0c0;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -690,8 +655,12 @@ a {
     pointer-events: none;
   }
 
-  /* Hide all desktop window buttons on mobile */
-  .zackos-window-btn {
+  /* Hide dot controls on mobile */
+  .zackos-window-dots {
+    display: none !important;
+  }
+
+  .zackos-window-title-spacer {
     display: none !important;
   }
 

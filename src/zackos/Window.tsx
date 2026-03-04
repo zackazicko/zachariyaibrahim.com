@@ -1,6 +1,5 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useState, useEffect } from 'react'
 import type { WindowState } from './types'
-import { CloseIcon, MaximizeIcon } from './icons'
 import { AboutContent, ProjectsContent, FtnsContent, NoslopContent, NotepadContent, SketchpadContent } from './apps'
 
 const MIN_WIDTH = 240
@@ -18,6 +17,24 @@ interface WindowProps {
 }
 
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se'
+
+function Clock() {
+  const [time, setTime] = useState(() => {
+    const now = new Date()
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  })
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      setTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`)
+    }
+    const interval = setInterval(updateTime, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return <span className="zackos-menubar-clock">{time}</span>
+}
 
 export function Window({ window: win, isMobile = false, onClose, onFocus, onMove, onResize, onToggleMaximize }: WindowProps) {
   const dragOffset = useRef<{ x: number; y: number } | null>(null)
@@ -160,24 +177,21 @@ export function Window({ window: win, isMobile = false, onClose, onFocus, onMove
             ← Back
           </button>
         ) : (
-          <button
-            className="zackos-window-btn zackos-close-btn"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onClose(win.id) }}
-            aria-label="Close"
-          >
-            <CloseIcon />
-          </button>
+          <div className="zackos-window-dots" onPointerDown={(e) => e.stopPropagation()}>
+            <button
+              className="zackos-dot zackos-dot-close"
+              onClick={(e) => { e.stopPropagation(); onClose(win.id) }}
+              aria-label="Close"
+            />
+            <button
+              className="zackos-dot zackos-dot-maximize"
+              onClick={(e) => { e.stopPropagation(); onToggleMaximize(win.id) }}
+              aria-label="Maximize"
+            />
+          </div>
         )}
         <span className="zackos-window-title">{win.title}</span>
-        <button
-          className="zackos-window-btn zackos-maximize-btn"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); onToggleMaximize(win.id) }}
-          aria-label="Maximize"
-        >
-          <MaximizeIcon />
-        </button>
+        {win.isMaximized ? <Clock /> : <div className="zackos-window-title-spacer" />}
       </div>
       <div className="zackos-window-content">
         {renderContent()}
