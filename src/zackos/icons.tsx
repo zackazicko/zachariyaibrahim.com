@@ -78,3 +78,25 @@ export function DownloadIcon() {
     </svg>
   )
 }
+
+export function GermIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect x="1" y="1" width="30" height="30" fill="#fff" stroke="#000" strokeWidth="1"/>
+      {/* Germ body */}
+      <ellipse cx="16" cy="16" rx="7" ry="6" fill="#000"/>
+      {/* Flagella/tentacles */}
+      <path d="M9 12 Q5 8, 4 10" stroke="#000" strokeWidth="1.5" fill="none"/>
+      <path d="M23 12 Q27 8, 28 10" stroke="#000" strokeWidth="1.5" fill="none"/>
+      <path d="M9 20 Q5 24, 4 22" stroke="#000" strokeWidth="1.5" fill="none"/>
+      <path d="M23 20 Q27 24, 28 22" stroke="#000" strokeWidth="1.5" fill="none"/>
+      <path d="M12 10 Q10 5, 12 4" stroke="#000" strokeWidth="1.5" fill="none"/>
+      <path d="M20 10 Q22 5, 20 4" stroke="#000" strokeWidth="1.5" fill="none"/>
+      <path d="M12 22 Q10 27, 12 28" stroke="#000" strokeWidth="1.5" fill="none"/>
+      <path d="M20 22 Q22 27, 20 28" stroke="#000" strokeWidth="1.5" fill="none"/>
+      {/* Eyes */}
+      <circle cx="14" cy="15" r="1.5" fill="#fff"/>
+      <circle cx="18" cy="15" r="1.5" fill="#fff"/>
+    </svg>
+  )
+}

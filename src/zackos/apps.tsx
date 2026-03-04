@@ -224,6 +224,25 @@ export function FtnsContent() {
 }
 
 /* =============================================================================
+   NOSLOP CONTENT
+   Manifesto on the slop era.
+   ============================================================================= */
+
+export function NoslopContent() {
+  return (
+    <TypedPage>
+      <h1 className="zackos-page-title">NOSLOP.</h1>
+      
+      <div className="zackos-page-section">
+        <p className="zackos-page-text">
+          {/* Write your manifesto here */}
+        </p>
+      </div>
+    </TypedPage>
+  )
+}
+
+/* =============================================================================
    NOTEPAD & SKETCHPAD (existing apps)
    ============================================================================= */
 

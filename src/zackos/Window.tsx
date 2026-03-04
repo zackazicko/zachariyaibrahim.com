@@ -1,7 +1,7 @@
 import { useRef, useCallback } from 'react'
 import type { WindowState } from './types'
 import { CloseIcon, MaximizeIcon } from './icons'
-import { AboutContent, ProjectsContent, FtnsContent, NotepadContent, SketchpadContent } from './apps'
+import { AboutContent, ProjectsContent, FtnsContent, NoslopContent, NotepadContent, SketchpadContent } from './apps'
 
 const MIN_WIDTH = 240
 const MIN_HEIGHT = 160
@@ -129,6 +129,8 @@ export function Window({ window: win, isMobile = false, onClose, onFocus, onMove
         return <ProjectsContent />
       case 'ftns':
         return <FtnsContent />
+      case 'noslop':
+        return <NoslopContent />
       case 'notepad':
         return <NotepadContent />
       case 'sketchpad':

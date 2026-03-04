@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { AppId, WindowState, DesktopIcon, IconPosition } from './types'
-import { PersonIcon, FolderIcon, AppIcon, NotepadIcon, SketchpadIcon } from './icons'
+import { PersonIcon, FolderIcon, AppIcon, NotepadIcon, SketchpadIcon, GermIcon, CloseIcon, MaximizeIcon } from './icons'
 import { Window } from './Window'
 import { BootScreen } from './BootScreen'
 
@@ -26,6 +26,7 @@ const ICONS: DesktopIcon[] = [
   { id: 'about', label: 'zachariyaibrahim.about', icon: 'person' },
   { id: 'projects', label: 'projects', icon: 'folder' },
   { id: 'ftns', label: 'ftns', icon: 'app' },
+  { id: 'noslop', label: 'NOSLOP.', icon: 'germ' },
   { id: 'notepad', label: 'notepad', icon: 'notepad' },
   { id: 'sketchpad', label: 'sketchpad', icon: 'sketchpad' },
 ]
@@ -34,6 +35,7 @@ const WINDOW_TITLES: Record<AppId, string> = {
   about: 'About',
   projects: 'Projects',
   ftns: 'ftns',
+  noslop: 'NOSLOP.',
   notepad: 'Notepad',
   sketchpad: 'Sketchpad',
 }
@@ -42,6 +44,7 @@ const WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
   about: { width: 400, height: 300 },
   projects: { width: 400, height: 300 },
   ftns: { width: 400, height: 300 },
+  noslop: { width: 500, height: 400 },
   notepad: { width: 480, height: 400 },
   sketchpad: { width: 560, height: 450 },
 }
@@ -61,13 +64,20 @@ function getIcon(type: DesktopIcon['icon']) {
     case 'app': return <AppIcon />
     case 'notepad': return <NotepadIcon />
     case 'sketchpad': return <SketchpadIcon />
+    case 'germ': return <GermIcon />
   }
 }
 
 let windowIdCounter = 0
 let topZIndex = 1
 
-function MenuBar() {
+interface MenuBarProps {
+  maximizedWindow?: WindowState
+  onClose?: (id: string) => void
+  onToggleMaximize?: (id: string) => void
+}
+
+function MenuBar({ maximizedWindow, onClose, onToggleMaximize }: MenuBarProps) {
   const [time, setTime] = useState(() => {
     const now = new Date()
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
@@ -84,8 +94,33 @@ function MenuBar() {
 
   return (
     <div className="zackos-menubar">
-      <span className="zackos-menubar-brand">zackOS</span>
-      <span className="zackos-menubar-clock">{time}</span>
+      <div className="zackos-menubar-left">
+        <span className="zackos-menubar-brand">zackOS</span>
+        {maximizedWindow && (
+          <span className="zackos-menubar-title">{maximizedWindow.title}</span>
+        )}
+      </div>
+      <div className="zackos-menubar-right">
+        {maximizedWindow && onClose && onToggleMaximize && (
+          <div className="zackos-menubar-controls">
+            <button
+              className="zackos-menubar-btn"
+              onClick={() => onToggleMaximize(maximizedWindow.id)}
+              title="Restore"
+            >
+              <MaximizeIcon />
+            </button>
+            <button
+              className="zackos-menubar-btn"
+              onClick={() => onClose(maximizedWindow.id)}
+              title="Close"
+            >
+              <CloseIcon />
+            </button>
+          </div>
+        )}
+        <span className="zackos-menubar-clock">{time}</span>
+      </div>
     </div>
   )
 }
@@ -250,9 +285,18 @@ export function Desktop() {
     return <BootScreen onComplete={() => setIsBooting(false)} />
   }
 
+  // Find the topmost maximized window
+  const maximizedWindow = windows
+    .filter(w => w.isMaximized)
+    .sort((a, b) => b.zIndex - a.zIndex)[0]
+
   return (
     <div className="zackos-desktop" onClick={handleDesktopClick}>
-      <MenuBar />
+      <MenuBar 
+        maximizedWindow={maximizedWindow}
+        onClose={closeWindow}
+        onToggleMaximize={toggleMaximize}
+      />
       {isMobile ? (
         <div className="zackos-icons-grid">{iconElements}</div>
       ) : (

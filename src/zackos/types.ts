@@ -1,4 +1,4 @@
-export type AppId = 'about' | 'projects' | 'ftns' | 'notepad' | 'sketchpad'
+export type AppId = 'about' | 'projects' | 'ftns' | 'notepad' | 'sketchpad' | 'noslop'
 
 export interface WindowState {
   id: string
@@ -16,7 +16,7 @@ export interface WindowState {
 export interface DesktopIcon {
   id: AppId
   label: string
-  icon: 'person' | 'folder' | 'app' | 'notepad' | 'sketchpad'
+  icon: 'person' | 'folder' | 'app' | 'notepad' | 'sketchpad' | 'germ'
 }
 
 export interface IconPosition {
