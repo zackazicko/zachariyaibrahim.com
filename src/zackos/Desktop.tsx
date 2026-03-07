@@ -42,7 +42,7 @@ const WINDOW_TITLES: Record<AppId, string> = {
 
 const WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
   about: { width: 400, height: 300 },
-  projects: { width: 400, height: 300 },
+  projects: { width: 800, height: 580 },
   ftns: { width: 400, height: 300 },
   noslop: { width: 500, height: 400 },
   notepad: { width: 480, height: 400 },

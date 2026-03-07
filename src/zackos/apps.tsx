@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
 import { DownloadIcon } from './icons'
+import { PROJECTS, type ProjectEntry, type ProjectMedia } from './projects'
 
 /* =============================================================================
    TYPED PAGE WRAPPER
@@ -84,6 +86,255 @@ function TypedPage({ children, speed = 12, pageId }: { children: React.ReactNode
   )
 }
 
+function ProjectMediaFrame({
+  media,
+  isActive,
+  setVideoRef,
+  priority = false,
+}: {
+  media: ProjectMedia
+  isActive: boolean
+  setVideoRef?: (node: HTMLVideoElement | null) => void
+  priority?: boolean
+}) {
+  return (
+    <div className="zackos-project-media-frame">
+      {media.type === 'video' ? (
+        <video
+          ref={setVideoRef}
+          className="zackos-project-media"
+          controls
+          playsInline
+          preload={isActive ? 'metadata' : 'none'}
+          poster={media.poster}
+        >
+          <source src={media.src} />
+        </video>
+      ) : (
+        <img
+          src={media.src}
+          alt={media.alt}
+          className="zackos-project-media"
+          loading={priority ? 'eager' : 'lazy'}
+        />
+      )}
+    </div>
+  )
+}
+
+function ProjectCarousel({ project }: { project: ProjectEntry }) {
+  const mediaCount = project.media.length
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [canScrollPrev, setCanScrollPrev] = useState(false)
+  const [canScrollNext, setCanScrollNext] = useState(mediaCount > 1)
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: 'center',
+    containScroll: 'trimSnaps',
+    loop: false,
+  })
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
+
+  const pauseInactiveVideos = useCallback((activeIndex: number) => {
+    videoRefs.current.forEach((video, index) => {
+      if (!video || index === activeIndex) return
+      video.pause()
+    })
+  }, [])
+
+  const updateCarouselState = useCallback(() => {
+    if (!emblaApi) return
+    const nextIndex = emblaApi.selectedScrollSnap()
+    setSelectedIndex(nextIndex)
+    setCanScrollPrev(emblaApi.canScrollPrev())
+    setCanScrollNext(emblaApi.canScrollNext())
+    pauseInactiveVideos(nextIndex)
+  }, [emblaApi, pauseInactiveVideos])
+
+  useEffect(() => {
+    if (!emblaApi) return
+    updateCarouselState()
+    emblaApi.on('select', updateCarouselState)
+    emblaApi.on('reInit', updateCarouselState)
+
+    return () => {
+      emblaApi.off('select', updateCarouselState)
+      emblaApi.off('reInit', updateCarouselState)
+    }
+  }, [emblaApi, updateCarouselState])
+
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (mediaCount < 2) return
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      scrollPrev()
+    }
+    if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      scrollNext()
+    }
+  }, [mediaCount, scrollPrev, scrollNext])
+
+  if (mediaCount === 1) {
+    const singleMedia = project.media[0]
+    return (
+      <section className="zackos-project-carousel" aria-label={`${project.title} media`}>
+        <div className="zackos-project-stage zackos-project-stage-single">
+          <ProjectMediaFrame media={singleMedia} isActive priority />
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="zackos-project-carousel" aria-label={`${project.title} media`}>
+      <div className="zackos-project-stage" onKeyDown={handleKeyDown} tabIndex={0}>
+        <button
+          type="button"
+          className="zackos-project-carousel-btn"
+          onClick={scrollPrev}
+          disabled={!canScrollPrev}
+          aria-label="Previous slide"
+        >
+          ←
+        </button>
+        <div className="zackos-project-embla" ref={emblaRef}>
+          <div className="zackos-project-embla-container">
+            {project.media.map((media, index) => (
+              <div
+                className={`zackos-project-embla-slide ${index === selectedIndex ? 'is-selected' : ''}`}
+                key={`${project.slug}-${media.src}`}
+              >
+                <ProjectMediaFrame
+                  media={media}
+                  isActive={index === selectedIndex}
+                  setVideoRef={(node) => {
+                    videoRefs.current[index] = node
+                  }}
+                  priority={index === 0}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="zackos-project-carousel-btn"
+          onClick={scrollNext}
+          disabled={!canScrollNext}
+          aria-label="Next slide"
+        >
+          →
+        </button>
+      </div>
+
+      <div className="zackos-project-carousel-footer">
+        <p className="zackos-project-counter">
+          {selectedIndex + 1} / {mediaCount}
+        </p>
+      </div>
+    </section>
+  )
+}
+
+function ProjectsIndex({ onOpenProject }: { onOpenProject: (slug: string) => void }) {
+  return (
+    <TypedPage pageId="projects">
+      <div className="zackos-projects-index">
+        <div className="zackos-page-section">
+          <h1 className="zackos-page-title">Projects</h1>
+        </div>
+
+        <div className="zackos-projects-list">
+          {PROJECTS.map((project) => (
+            <button
+              type="button"
+              key={project.slug}
+              className="zackos-project-card"
+              onClick={() => onOpenProject(project.slug)}
+            >
+              <div className="zackos-project-card-thumb-wrap" aria-hidden="true">
+                <img
+                  src={project.media[0]?.src}
+                  alt=""
+                  className="zackos-project-card-thumb"
+                  loading="lazy"
+                />
+              </div>
+              <div className="zackos-project-card-copy">
+                <div className="zackos-project-card-header">
+                  <h2 className="zackos-project-title">{project.title}</h2>
+                  {project.year && <span className="zackos-project-card-year">{project.year}</span>}
+                </div>
+                <p className="zackos-project-card-subtitle">{project.subtitle}</p>
+                <div className="zackos-project-card-meta">
+                  {project.platform && <span>{project.platform}</span>}
+                  {project.role && <span>{project.role}</span>}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </TypedPage>
+  )
+}
+
+function ProjectDetail({ project, onBack }: { project: ProjectEntry; onBack: () => void }) {
+  const detailMeta = [project.year, project.platform, project.role].filter(Boolean)
+
+  return (
+    <div className="zackos-project-detail">
+      <div className="zackos-project-detail-header">
+        <button type="button" className="zackos-project-back" onClick={onBack}>
+          ← Projects
+        </button>
+        <div className="zackos-project-detail-heading">
+          <h1 className="zackos-page-title zackos-project-detail-title">{project.title}</h1>
+          <p className="zackos-page-subtitle zackos-project-detail-subtitle">{project.subtitle}</p>
+          {detailMeta.length > 0 && (
+            <div className="zackos-project-detail-meta" aria-label="Project metadata">
+              {detailMeta.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="zackos-project-detail-scroll">
+        <ProjectCarousel project={project} />
+
+        <section className="zackos-project-copy-section">
+          <h2 className="zackos-page-heading">Overview</h2>
+          {project.description.map((paragraph) => (
+            <p key={paragraph} className="zackos-page-text">
+              {paragraph}
+            </p>
+          ))}
+        </section>
+
+        {project.links.length > 0 && (
+          <section className="zackos-project-copy-section">
+            <h2 className="zackos-page-heading">Links</h2>
+            <ul className="zackos-page-links">
+              {project.links.map((link) => (
+                <li key={link.href}>
+                  <a href={link.href} target="_blank" rel="noopener noreferrer">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* =============================================================================
    ABOUT CONTENT
    Edit your bio, links, and info here.
@@ -148,37 +399,14 @@ export function AboutContent() {
    ============================================================================= */
 
 export function ProjectsContent() {
-  return (
-    <TypedPage pageId="projects">
-      <h1 className="zackos-page-title">Projects</h1>
-      
-      {/* PROJECT 1 */}
-      <div className="zackos-project">
-        {/* Uncomment to add project image:
-        <img 
-          src="/project1.jpg" 
-          alt="Project Name" 
-          className="zackos-project-image"
-        />
-        */}
-        <h2 className="zackos-project-title">ftns.</h2>
-        <p className="zackos-page-text">
-          ftns. is a fitness tracking app that aims to simplify workout entry and tracking. It distills the experience of a "fitness" tracker app" into the simplest form possible. Download it via the link belowand give me some feedback. 
-          I built this app with deep focus on the user experience; removing every unnecessary click and friction between the user and the end goal of tracking exercises. It is built to be easier than logging a workout into your notes app, but provide historical data and insights to enable you to see progress and continuously improve. ftns. solves a very specific painpoint I have exprienced in my years at the gym, I do not want to carry around a notebook and pen (too analog), I do not want an AI slop workout app (don't tell me what to lift today), and I do not want to put workouts into my notes app (no insights over time). 
-        </p>
-        <a 
-          href="https://apps.apple.com/us/app/ftns/id6756637536" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="zackos-project-link"
-        >
-          App Store Link
-        </a>
-      </div>
+  const [selectedProjectSlug, setSelectedProjectSlug] = useState<string | null>(null)
+  const selectedProject = PROJECTS.find((project) => project.slug === selectedProjectSlug) || null
 
+  if (selectedProject) {
+    return <ProjectDetail project={selectedProject} onBack={() => setSelectedProjectSlug(null)} />
+  }
 
-    </TypedPage>
-  )
+  return <ProjectsIndex onOpenProject={setSelectedProjectSlug} />
 }
 
 /* =============================================================================
