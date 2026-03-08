@@ -9,6 +9,7 @@ import { PROJECTS, type ProjectEntry, type ProjectMedia } from './projects'
    ============================================================================= */
 
 const animatedPages = new Set<string>()
+const PROJECTS_MOBILE_BREAKPOINT = 640
 
 function countChars(node: React.ReactNode): number {
   if (node == null || typeof node === 'boolean') return 0
@@ -89,35 +90,278 @@ function TypedPage({ children, speed = 12, pageId }: { children: React.ReactNode
 function ProjectMediaFrame({
   media,
   isActive,
+  canOpen = false,
+  onOpen,
   setVideoRef,
   priority = false,
 }: {
   media: ProjectMedia
   isActive: boolean
+  canOpen?: boolean
+  onOpen?: () => void
   setVideoRef?: (node: HTMLVideoElement | null) => void
   priority?: boolean
 }) {
+  if (media.type === 'image') {
+    const content = (
+      <img
+        src={media.src}
+        alt={media.alt}
+        className="zackos-project-media"
+        loading={priority ? 'eager' : 'lazy'}
+      />
+    )
+
+    return (
+      <div className="zackos-project-media-frame">
+        {canOpen && onOpen ? (
+          <button
+            type="button"
+            className="zackos-project-media-button"
+            onClick={onOpen}
+            aria-label="Open image viewer"
+          >
+            {content}
+          </button>
+        ) : (
+          content
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="zackos-project-media-frame">
-      {media.type === 'video' ? (
-        <video
-          ref={setVideoRef}
-          className="zackos-project-media"
-          controls
-          playsInline
-          preload={isActive ? 'metadata' : 'none'}
-          poster={media.poster}
-        >
-          <source src={media.src} />
-        </video>
-      ) : (
-        <img
-          src={media.src}
-          alt={media.alt}
-          className="zackos-project-media"
-          loading={priority ? 'eager' : 'lazy'}
-        />
-      )}
+      <video
+        ref={setVideoRef}
+        className="zackos-project-media"
+        controls
+        playsInline
+        preload={isActive ? 'metadata' : 'none'}
+        poster={media.poster}
+      >
+        <source src={media.src} />
+      </video>
+    </div>
+  )
+}
+
+function useIsMobileViewport() {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth <= PROJECTS_MOBILE_BREAKPOINT
+  )
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= PROJECTS_MOBILE_BREAKPOINT)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  return isMobile
+}
+
+function PhotoViewer({
+  media,
+  index,
+  total,
+  canPrev,
+  canNext,
+  onClose,
+  onPrev,
+  onNext,
+}: {
+  media: ProjectMedia
+  index: number
+  total: number
+  canPrev: boolean
+  canNext: boolean
+  onClose: () => void
+  onPrev: () => void
+  onNext: () => void
+}) {
+  const isMobile = useIsMobileViewport()
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [isPanning, setIsPanning] = useState(false)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const imageRef = useRef<HTMLImageElement>(null)
+  const panStartRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null)
+
+  const clampPan = useCallback((x: number, y: number, nextZoom: number) => {
+    const canvas = canvasRef.current
+    const image = imageRef.current
+
+    if (!canvas || !image || nextZoom <= 1) {
+      return { x: 0, y: 0 }
+    }
+
+    const scaledWidth = image.clientWidth * nextZoom
+    const scaledHeight = image.clientHeight * nextZoom
+    const maxX = Math.max(0, (scaledWidth - canvas.clientWidth) / 2)
+    const maxY = Math.max(0, (scaledHeight - canvas.clientHeight) / 2)
+
+    return {
+      x: Math.min(maxX, Math.max(-maxX, x)),
+      y: Math.min(maxY, Math.max(-maxY, y)),
+    }
+  }, [])
+
+  const setClampedZoom = useCallback((updater: (zoom: number) => number) => {
+    setZoom((currentZoom) => {
+      const nextZoom = Math.min(3, Math.max(1, Number(updater(currentZoom).toFixed(2))))
+      setPan((currentPan) => clampPan(currentPan.x, currentPan.y, nextZoom))
+      return nextZoom
+    })
+  }, [clampPan])
+
+  const zoomOut = useCallback(() => {
+    setClampedZoom((currentZoom) => currentZoom - 0.25)
+  }, [setClampedZoom])
+
+  const zoomIn = useCallback(() => {
+    setClampedZoom((currentZoom) => currentZoom + 0.25)
+  }, [setClampedZoom])
+
+  const resetZoom = useCallback(() => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+  }, [])
+
+  useEffect(() => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+    setIsPanning(false)
+    panStartRef.current = null
+  }, [media.src])
+
+  useEffect(() => {
+    setPan((currentPan) => clampPan(currentPan.x, currentPan.y, zoom))
+  }, [zoom, clampPan])
+
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+      if (event.key === 'ArrowLeft' && canPrev) onPrev()
+      if (event.key === 'ArrowRight' && canNext) onNext()
+      if (event.key === '+' || event.key === '=') {
+        event.preventDefault()
+        zoomIn()
+      }
+      if (event.key === '-') {
+        event.preventDefault()
+        zoomOut()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeydown)
+    return () => window.removeEventListener('keydown', handleKeydown)
+  }, [canNext, canPrev, onClose, onNext, onPrev, zoomIn, zoomOut])
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (zoom <= 1) return
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    panStartRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: pan.x,
+      originY: pan.y,
+    }
+    setIsPanning(true)
+  }, [zoom, pan.x, pan.y])
+
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!panStartRef.current || panStartRef.current.pointerId !== e.pointerId) return
+    const dx = e.clientX - panStartRef.current.startX
+    const dy = e.clientY - panStartRef.current.startY
+    setPan(clampPan(panStartRef.current.originX + dx, panStartRef.current.originY + dy, zoom))
+  }, [clampPan, zoom])
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (panStartRef.current?.pointerId !== e.pointerId) return
+    panStartRef.current = null
+    setIsPanning(false)
+  }, [])
+
+  return (
+    <div
+      className={`zackos-photo-viewer-overlay ${isMobile ? 'mobile' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Photo viewer"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className={`zackos-photo-viewer ${isMobile ? 'mobile' : ''}`}>
+        <div className="zackos-photo-viewer-header">
+          <div className="zackos-photo-viewer-close">
+            <div className="zackos-window-dots">
+              <button
+                type="button"
+                className="zackos-dot zackos-dot-close"
+                onClick={onClose}
+                aria-label="Close photo viewer"
+              />
+            </div>
+          </div>
+          <p className="zackos-photo-viewer-status">
+            {index + 1} / {total}
+          </p>
+          <div className="zackos-photo-viewer-tools">
+            <button
+              type="button"
+              className="zackos-project-carousel-btn"
+              onClick={onPrev}
+              disabled={!canPrev}
+              aria-label="Previous image"
+            >
+              ←
+            </button>
+            <button type="button" className="zackos-toolbar-btn" onClick={zoomOut} disabled={zoom <= 1}>
+              −
+            </button>
+            <button type="button" className="zackos-toolbar-btn" onClick={resetZoom}>
+              {Math.round(zoom * 100)}%
+            </button>
+            <button type="button" className="zackos-toolbar-btn" onClick={zoomIn} disabled={zoom >= 3}>
+              +
+            </button>
+            <button
+              type="button"
+              className="zackos-project-carousel-btn"
+              onClick={onNext}
+              disabled={!canNext}
+              aria-label="Next image"
+            >
+              →
+            </button>
+          </div>
+        </div>
+        <div className="zackos-photo-viewer-body">
+          <div
+            ref={canvasRef}
+            className={`zackos-photo-viewer-canvas ${zoom > 1 ? 'is-zoomed' : ''} ${isPanning ? 'is-panning' : ''}`}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            onPointerLeave={handlePointerUp}
+          >
+            <img
+              ref={imageRef}
+              src={media.src}
+              alt={media.alt}
+              className="zackos-photo-viewer-image"
+              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -127,6 +371,7 @@ function ProjectCarousel({ project }: { project: ProjectEntry }) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [canScrollPrev, setCanScrollPrev] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(mediaCount > 1)
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'center',
     containScroll: 'trimSnaps',
@@ -164,6 +409,27 @@ function ProjectCarousel({ project }: { project: ProjectEntry }) {
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
+  const scrollTo = useCallback((index: number) => emblaApi?.scrollTo(index), [emblaApi])
+
+  const openViewer = useCallback((index: number) => {
+    if (project.media[index]?.type !== 'image') return
+    setViewerIndex(index)
+  }, [project.media])
+
+  const closeViewer = useCallback(() => {
+    setViewerIndex(null)
+  }, [])
+
+  const handleViewerStep = useCallback((direction: -1 | 1) => {
+    if (viewerIndex == null) return
+    let nextIndex = viewerIndex + direction
+    while (nextIndex >= 0 && nextIndex < mediaCount && project.media[nextIndex]?.type !== 'image') {
+      nextIndex += direction
+    }
+    if (nextIndex < 0 || nextIndex >= mediaCount) return
+    setViewerIndex(nextIndex)
+    scrollTo(nextIndex)
+  }, [viewerIndex, mediaCount, project.media, scrollTo])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (mediaCount < 2) return
@@ -177,13 +443,34 @@ function ProjectCarousel({ project }: { project: ProjectEntry }) {
     }
   }, [mediaCount, scrollPrev, scrollNext])
 
+  const viewerMedia = viewerIndex != null ? project.media[viewerIndex] : null
+  const viewerOverlay = viewerMedia?.type === 'image' && viewerIndex != null ? (
+    <PhotoViewer
+      media={viewerMedia}
+      index={viewerIndex}
+      total={mediaCount}
+      canPrev={viewerIndex > 0}
+      canNext={viewerIndex < mediaCount - 1}
+      onClose={closeViewer}
+      onPrev={() => handleViewerStep(-1)}
+      onNext={() => handleViewerStep(1)}
+    />
+  ) : null
+
   if (mediaCount === 1) {
     const singleMedia = project.media[0]
     return (
       <section className="zackos-project-carousel" aria-label={`${project.title} media`}>
         <div className="zackos-project-stage zackos-project-stage-single">
-          <ProjectMediaFrame media={singleMedia} isActive priority />
+          <ProjectMediaFrame
+            media={singleMedia}
+            isActive
+            canOpen={singleMedia.type === 'image'}
+            onOpen={() => openViewer(0)}
+            priority
+          />
         </div>
+        {viewerOverlay}
       </section>
     )
   }
@@ -210,6 +497,8 @@ function ProjectCarousel({ project }: { project: ProjectEntry }) {
                 <ProjectMediaFrame
                   media={media}
                   isActive={index === selectedIndex}
+                  canOpen={index === selectedIndex && media.type === 'image'}
+                  onOpen={() => openViewer(index)}
                   setVideoRef={(node) => {
                     videoRefs.current[index] = node
                   }}
@@ -235,6 +524,7 @@ function ProjectCarousel({ project }: { project: ProjectEntry }) {
           {selectedIndex + 1} / {mediaCount}
         </p>
       </div>
+      {viewerOverlay}
     </section>
   )
 }
@@ -255,11 +545,15 @@ function ProjectsIndex({ onOpenProject }: { onOpenProject: (slug: string) => voi
               className="zackos-project-card"
               onClick={() => onOpenProject(project.slug)}
             >
-              <div className="zackos-project-card-thumb-wrap" aria-hidden="true">
+              <div
+                className={`zackos-project-card-thumb-wrap ${project.previewShape === 'square' ? 'square' : 'portrait'}`}
+                aria-hidden="true"
+              >
                 <img
-                  src={project.media[0]?.src}
+                  src={project.previewSrc || project.media[0]?.src}
                   alt=""
                   className="zackos-project-card-thumb"
+                  style={{ objectFit: project.previewFit || 'cover' }}
                   loading="lazy"
                 />
               </div>
