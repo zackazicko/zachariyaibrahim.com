@@ -33,8 +33,9 @@ export const PROJECTS: ProjectEntry[] = [
     title: 'ftns.',
     subtitle: 'Fitness tracking, simplified',
     platform: 'iOS',
-    previewFit: 'cover',
-    previewShape: 'portrait',
+    previewSrc: '/projects/ftns/logo.png',
+    previewFit: 'contain',
+    previewShape: 'square',
     summary: 'ftns. is a fitness tracking app that aims to simplify workout entry and tracking.',
     description: [
       'ftns. is a fitness tracking app that aims to simplify workout entry and tracking. It distills the experience of a "fitness" tracker app" into the simplest form possible. Download it via the link below and give me some feedback. I built this app with deep focus on the user experience; removing every unnecessary click and friction between the user and the end goal of tracking exercises. It is built to be easier than logging a workout into your notes app, but provide historical data and insights to enable you to see progress and continuously improve. ftns. solves a very specific painpoint I have exprienced in my years at the gym, I do not want to carry around a notebook and pen (too analog), I do not want an AI slop workout app (don\'t tell me what to lift today), and I do not want to put workouts into my notes app (no insights over time).'
@@ -75,7 +76,7 @@ export const PROJECTS: ProjectEntry[] = [
     description: [
       'nts. is a notes app I created in mid-2025. It cleanly solves a problem I have; I take so many random notes on wildly different subjects and ideas and I have no way to recall these notes once they\'re created. Sometimes I have an idea for a cool product (everyone has a million of those in their notes app), or just something I need to get to at work. I write these quick thoughts in my native notes app and after a few months I have lost the ability to recall an idea I had on a specific subject.',
       'nts. uses a lightweight LLM that is prompted to parse and "tag" notes based on their content. This agent creates JSON tags and references old tags to understand if this note relates to any other topics, and what new topics this note contains. It is conceptually a very simple app, and was my first successful attempt at launching a usable app that my friends and colleagues could use.',
-      'I initially deployed the website with Vercel, use Gemini as my API provider, and Supabase as the database, but I have since migrated everything to Cloudflare and created the subdomain nts.zachariyaibrahim.com.',
+      'I initially deployed the website with Vercel, used Gemini as my API provider, and Supabase as the database but I have since migrated everything to Cloudflare and created the subdomain nts.zachariyaibrahim.com.',
       'Feel free to use nts. to take your notes, it is super clean on both web and mobile, and gets more useful as you fill it with notes.',
       'My goal is to turn it into a mobile app eventually... when I have the time.'
     ],
