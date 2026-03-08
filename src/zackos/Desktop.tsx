@@ -5,6 +5,18 @@ import { Window } from './Window'
 import { BootScreen } from './BootScreen'
 
 const MOBILE_BREAKPOINT = 640
+const MENUBAR_HEIGHT = 22
+const INTRO_ICON_CURSOR_X = 30
+const INTRO_ICON_CURSOR_Y = 24
+
+interface WindowPlacement {
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  isMaximized?: boolean
+  animateOpen?: boolean
+}
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => 
@@ -20,6 +32,59 @@ function useIsMobile() {
   }, [])
   
   return isMobile
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function getAutoLaunchWindowPlacements() {
+  if (typeof window === 'undefined') {
+    return {
+      about: { x: 120, y: 120, width: 400, height: 320 },
+      projects: { x: 460, y: 84, width: 760, height: 560 },
+    }
+  }
+
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+  const overlap = clamp(Math.round(viewportWidth * 0.055), 56, 96)
+  let aboutWidth = clamp(Math.round(viewportWidth * 0.3), 360, 440)
+  let projectsWidth = clamp(Math.round(viewportWidth * 0.56), 620, 860)
+  const usableWidth = Math.max(560, viewportWidth - 96)
+  const totalWidth = aboutWidth + projectsWidth - overlap
+
+  if (totalWidth > usableWidth) {
+    const overflow = totalWidth - usableWidth
+    const projectsShrink = Math.min(overflow, projectsWidth - 560)
+    projectsWidth -= projectsShrink
+    aboutWidth -= Math.min(overflow - projectsShrink, aboutWidth - 320)
+  }
+
+  const aboutHeight = clamp(Math.round(viewportHeight * 0.42), 300, 360)
+  const projectsHeight = clamp(Math.round(viewportHeight * 0.7), 500, 600)
+  const fittedWidth = aboutWidth + projectsWidth - overlap
+  const left = Math.max(32, Math.round((viewportWidth - fittedWidth) / 2))
+  const projectsY = clamp(
+    Math.round((viewportHeight - projectsHeight) / 2) + 6,
+    MENUBAR_HEIGHT + 18,
+    Math.max(MENUBAR_HEIGHT + 18, viewportHeight - projectsHeight - 36)
+  )
+  const aboutY = clamp(
+    projectsY + 54,
+    MENUBAR_HEIGHT + 42,
+    Math.max(MENUBAR_HEIGHT + 42, viewportHeight - aboutHeight - 36)
+  )
+
+  return {
+    about: { x: left, y: aboutY, width: aboutWidth, height: aboutHeight },
+    projects: {
+      x: left + aboutWidth - overlap,
+      y: projectsY,
+      width: projectsWidth,
+      height: projectsHeight,
+    },
+  }
 }
 
 const ICONS: DesktopIcon[] = [
@@ -100,27 +165,62 @@ export function Desktop() {
   const [windows, setWindows] = useState<WindowState[]>([])
   const [iconPositions, setIconPositions] = useState<Record<AppId, IconPosition>>(getDefaultIconPositions)
   const [selectedIcon, setSelectedIcon] = useState<AppId | null>(null)
+  const [introTarget, setIntroTarget] = useState<AppId | null>(null)
+  const [introPulse, setIntroPulse] = useState<{ appId: AppId; key: number } | null>(null)
+  const [introCursor, setIntroCursor] = useState<{ x: number; y: number; clicking: boolean } | null>(null)
   
   const lastClickRef = useRef<{ time: number; target: AppId | null }>({ time: 0, target: null })
   const dragIconRef = useRef<{ id: AppId; startX: number; startY: number; iconStartX: number; iconStartY: number; moved: boolean } | null>(null)
+  const introTimeoutsRef = useRef<number[]>([])
+  const introPulseKeyRef = useRef(0)
+  const introHasPlayedRef = useRef(false)
+  const introIsRunningRef = useRef(false)
+  const windowAnimationTimeoutsRef = useRef<number[]>([])
 
-  const openWindow = useCallback((appId: AppId) => {
+  const clearIntroTimeouts = useCallback(() => {
+    introTimeoutsRef.current.forEach(window.clearTimeout)
+    introTimeoutsRef.current = []
+  }, [])
+
+  const clearWindowAnimationTimeouts = useCallback(() => {
+    windowAnimationTimeoutsRef.current.forEach(window.clearTimeout)
+    windowAnimationTimeoutsRef.current = []
+  }, [])
+
+  const clearIntroVisuals = useCallback(() => {
+    setIntroTarget(null)
+    setIntroPulse(null)
+    setIntroCursor(null)
+  }, [])
+
+  const openWindow = useCallback((appId: AppId, placement?: WindowPlacement) => {
     windowIdCounter++
     topZIndex++
     const offset = (windowIdCounter % 5) * 30
     const size = WINDOW_SIZES[appId]
+    const windowId = `win-${windowIdCounter}`
     const newWindow: WindowState = {
-      id: `win-${windowIdCounter}`,
+      id: windowId,
       appId,
       title: WINDOW_TITLES[appId],
-      x: 120 + offset,
-      y: 80 + offset,
-      width: size.width,
-      height: size.height,
+      x: placement?.x ?? 120 + offset,
+      y: placement?.y ?? 80 + offset,
+      width: placement?.width ?? size.width,
+      height: placement?.height ?? size.height,
       zIndex: topZIndex,
-      isMaximized: isMobile, // Start maximized on mobile
+      isMaximized: placement?.isMaximized ?? isMobile,
+      isOpening: placement?.animateOpen && !isMobile,
     }
     setWindows(prev => [...prev, newWindow])
+
+    if (newWindow.isOpening) {
+      const timeoutId = window.setTimeout(() => {
+        setWindows(prev => prev.map(win => (
+          win.id === windowId ? { ...win, isOpening: false } : win
+        )))
+      }, 280)
+      windowAnimationTimeoutsRef.current.push(timeoutId)
+    }
   }, [isMobile])
 
   const closeWindow = useCallback((id: string) => {
@@ -162,6 +262,94 @@ export function Desktop() {
       }
     }))
   }, [])
+
+  const moveIntroCursorTo = useCallback((appId: AppId) => {
+    const pos = iconPositions[appId]
+    setIntroCursor({
+      x: pos.x + INTRO_ICON_CURSOR_X,
+      y: pos.y + INTRO_ICON_CURSOR_Y,
+      clicking: false,
+    })
+    setIntroTarget(appId)
+  }, [iconPositions])
+
+  const triggerIntroClick = useCallback((appId: AppId) => {
+    introPulseKeyRef.current += 1
+    const pulseKey = introPulseKeyRef.current
+
+    setSelectedIcon(appId)
+    setIntroTarget(appId)
+    setIntroPulse({ appId, key: pulseKey })
+    setIntroCursor(prev => prev ? { ...prev, clicking: true } : prev)
+
+    const releaseId = window.setTimeout(() => {
+      setIntroCursor(prev => prev ? { ...prev, clicking: false } : prev)
+    }, 120)
+    const pulseResetId = window.setTimeout(() => {
+      setIntroPulse(current => current?.key === pulseKey ? null : current)
+    }, 220)
+
+    introTimeoutsRef.current.push(releaseId, pulseResetId)
+  }, [])
+
+  const cancelAutoLaunch = useCallback(() => {
+    if (!introIsRunningRef.current) return
+    introIsRunningRef.current = false
+    clearIntroTimeouts()
+    clearIntroVisuals()
+    setSelectedIcon(null)
+  }, [clearIntroTimeouts, clearIntroVisuals])
+
+  useEffect(() => {
+    return () => {
+      clearIntroTimeouts()
+      clearWindowAnimationTimeouts()
+    }
+  }, [clearIntroTimeouts, clearWindowAnimationTimeouts])
+
+  useEffect(() => {
+    if (isBooting || isMobile || introHasPlayedRef.current) return
+
+    introHasPlayedRef.current = true
+    introIsRunningRef.current = true
+
+    const placements = getAutoLaunchWindowPlacements()
+    let totalDelay = 320
+
+    const schedule = (delay: number, callback: () => void) => {
+      const timeoutId = window.setTimeout(() => {
+        if (!introIsRunningRef.current) return
+        callback()
+      }, delay)
+      introTimeoutsRef.current.push(timeoutId)
+    }
+
+    schedule(totalDelay, () => moveIntroCursorTo('about'))
+    totalDelay += 520
+    schedule(totalDelay, () => triggerIntroClick('about'))
+    totalDelay += 320
+    schedule(totalDelay, () => {
+      triggerIntroClick('about')
+      openWindow('about', { ...placements.about, animateOpen: true })
+    })
+    totalDelay += 620
+    schedule(totalDelay, () => moveIntroCursorTo('projects'))
+    totalDelay += 560
+    schedule(totalDelay, () => triggerIntroClick('projects'))
+    totalDelay += 320
+    schedule(totalDelay, () => {
+      triggerIntroClick('projects')
+      openWindow('projects', { ...placements.projects, animateOpen: true })
+    })
+    totalDelay += 520
+    schedule(totalDelay, () => {
+      introIsRunningRef.current = false
+      clearIntroVisuals()
+      setSelectedIcon(null)
+    })
+
+    return () => clearIntroTimeouts()
+  }, [isBooting, isMobile, clearIntroTimeouts, clearIntroVisuals, moveIntroCursorTo, openWindow, triggerIntroClick])
 
   // Icon interaction handlers
   const handleIconPointerDown = useCallback((appId: AppId, e: React.PointerEvent<HTMLDivElement>) => {
@@ -230,19 +418,28 @@ export function Desktop() {
     }
   }, [])
 
+  const handleDesktopPointerDownCapture = useCallback(() => {
+    if (isBooting) return
+    cancelAutoLaunch()
+  }, [cancelAutoLaunch, isBooting])
+
   const iconElements = ICONS.map(icon => {
     const pos = iconPositions[icon.id]
     const isSelected = selectedIcon === icon.id
+    const isIntroTarget = introTarget === icon.id
     return (
       <div
         key={icon.id}
-        className={`zackos-icon ${isSelected ? 'selected' : ''}`}
+        className={`zackos-icon ${isSelected ? 'selected' : ''} ${isIntroTarget ? 'intro-target' : ''}`}
         style={isMobile ? undefined : { left: pos.x, top: pos.y }}
         onPointerDown={(e) => handleIconPointerDown(icon.id, e)}
         onPointerMove={handleIconPointerMove}
         onPointerUp={() => handleIconPointerUp(icon.id)}
       >
         <div className="zackos-icon-image">
+          {introPulse?.appId === icon.id ? (
+            <span key={introPulse.key} className="zackos-icon-demo-pulse" aria-hidden="true" />
+          ) : null}
           {getIcon(icon.icon)}
         </div>
         <span className="zackos-icon-label">{icon.label}</span>
@@ -253,7 +450,11 @@ export function Desktop() {
   const hasMaximized = windows.some(w => w.isMaximized)
 
   return (
-    <div className="zackos-desktop" onClick={handleDesktopClick}>
+    <div
+      className="zackos-desktop"
+      onClick={handleDesktopClick}
+      onPointerDownCapture={handleDesktopPointerDownCapture}
+    >
       {isBooting && <BootScreen onComplete={() => setIsBooting(false)} />}
       {!hasMaximized && <MenuBar />}
       {isMobile ? (
@@ -273,6 +474,15 @@ export function Desktop() {
           onToggleMaximize={toggleMaximize}
         />
       ))}
+      {!isMobile && introCursor && (
+        <div
+          className={`zackos-demo-cursor ${introCursor.clicking ? 'clicking' : ''}`}
+          style={{ left: introCursor.x, top: introCursor.y }}
+          aria-hidden="true"
+        >
+          <span className="zackos-demo-cursor-ring" />
+        </div>
+      )}
     </div>
   )
 }

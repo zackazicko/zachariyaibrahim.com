@@ -157,7 +157,7 @@ export function Window({ window: win, isMobile = false, onClose, onFocus, onMove
 
   return (
     <div
-      className="zackos-window"
+      className={`zackos-window ${win.isOpening ? 'opening' : ''}`}
       style={style}
       onMouseDown={() => onFocus(win.id)}
     >

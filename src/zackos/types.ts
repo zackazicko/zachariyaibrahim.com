@@ -10,6 +10,7 @@ export interface WindowState {
   height: number
   zIndex: number
   isMaximized: boolean
+  isOpening?: boolean
   prevBounds?: { x: number; y: number; width: number; height: number }
 }
 
