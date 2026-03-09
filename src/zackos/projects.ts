@@ -121,7 +121,7 @@ export const PROJECTS: ProjectEntry[] = [
     platform: 'HTML Web App + Python Backend',
     previewSrc: '/projects/cleary/logo.png',
     previewFit: 'contain',
-    previewShape: 'landscape',
+    previewShape: 'square',
     summary: 'Cleary is a personal research exploration.',
     description: [
       'Cleary is a personal research exploration. My goal was to understand which data sources are publicly available, and what less obvious things about drugs can be uncovered from a quick ping of these data sources.',
