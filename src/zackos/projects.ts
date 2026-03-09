@@ -113,5 +113,39 @@ export const PROJECTS: ProjectEntry[] = [
         alt: 'nts. mobile notes interface.'
       }
     ]
+  },
+  {
+    slug: 'cleary',
+    title: 'cleary',
+    subtitle: 'Drug research from public data sources.',
+    platform: 'HTML Web App + Python Backend',
+    previewSrc: '/projects/cleary/logo.png',
+    previewFit: 'contain',
+    previewShape: 'square',
+    summary: 'Cleary is a personal research exploration.',
+    description: [
+      'Cleary is a personal research exploration. My goal was to understand which data sources are publicly available, and what less obvious things about drugs can be uncovered from a quick ping of these data sources.',
+      'I began with a ChatGPT search to understand which FDA and research API\'s were free to use, looked into these resources, and used Cursor to build a barebones CLI interface where a user can input the name of a drug, get it normalized to an NDC (national drug code directory), and then see all of the payments paid by the manufacturer to shady sources, any open recalls, and peer reviewed studies on the drug. Users can also output this full data dump to a markdown file and plug it into their own LLM to get a better understanding of the drug they are taking.',
+      'This is a proof of concept for a more thought out app I would like to build one day which takes this publicly available data and gives insights directly to patients looking to understand the medicine they were just prescribed.',
+      'I was inspired to create this project after reading "No More Tears" by Gardiner Harris - what a book! This book covers some of the dirty secrets Johnson & Johnson has been attempting to hide and the shady business of drug manufacturers.'
+    ],
+    links: [],
+    media: [
+      {
+        type: 'image',
+        src: '/projects/cleary/01-search.png',
+        alt: 'Cleary search interface for looking up a drug.'
+      },
+      {
+        type: 'image',
+        src: '/projects/cleary/02-financials.png',
+        alt: 'Cleary financial view showing manufacturer payments and related data.'
+      },
+      {
+        type: 'image',
+        src: '/projects/cleary/03-ozempic.png',
+        alt: 'Cleary drug detail page for Ozempic.'
+      }
+    ]
   }
 ]
