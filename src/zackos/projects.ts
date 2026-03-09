@@ -20,7 +20,7 @@ export interface ProjectEntry {
   role?: string
   previewSrc?: string
   previewFit?: 'cover' | 'contain'
-  previewShape?: 'portrait' | 'square'
+  previewShape?: 'portrait' | 'square' | 'landscape'
   summary: string
   description: string[]
   links: ProjectLink[]
@@ -121,7 +121,7 @@ export const PROJECTS: ProjectEntry[] = [
     platform: 'HTML Web App + Python Backend',
     previewSrc: '/projects/cleary/logo.png',
     previewFit: 'contain',
-    previewShape: 'square',
+    previewShape: 'landscape',
     summary: 'Cleary is a personal research exploration.',
     description: [
       'Cleary is a personal research exploration. My goal was to understand which data sources are publicly available, and what less obvious things about drugs can be uncovered from a quick ping of these data sources.',
@@ -129,7 +129,12 @@ export const PROJECTS: ProjectEntry[] = [
       'This is a proof of concept for a more thought out app I would like to build one day which takes this publicly available data and gives insights directly to patients looking to understand the medicine they were just prescribed.',
       'I was inspired to create this project after reading "No More Tears" by Gardiner Harris - what a book! This book covers some of the dirty secrets Johnson & Johnson has been attempting to hide and the shady business of drug manufacturers.'
     ],
-    links: [],
+    links: [
+      {
+        label: 'Try Cleary',
+        href: 'https://cleary.zachariyaibrahim.com'
+      }
+    ],
     media: [
       {
         type: 'image',

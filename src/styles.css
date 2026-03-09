@@ -597,6 +597,10 @@ a {
   cursor: pointer;
 }
 
+.zackos-project-card.landscape-preview {
+  grid-template-columns: 152px minmax(0, 1fr);
+}
+
 .zackos-project-card:hover {
   background: #fff;
 }
@@ -623,6 +627,14 @@ a {
 
 .zackos-project-card-thumb-wrap.square {
   height: 96px;
+}
+
+.zackos-project-card-thumb-wrap.landscape {
+  width: 152px;
+  height: 76px;
+  padding: 0;
+  border: none;
+  background: transparent;
 }
 
 .zackos-project-card-thumb {
@@ -1197,6 +1209,10 @@ a {
     padding: 10px;
   }
 
+  .zackos-project-card.landscape-preview {
+    grid-template-columns: 108px minmax(0, 1fr);
+  }
+
   .zackos-project-card-thumb-wrap {
     width: 74px;
     height: 100px;
@@ -1204,6 +1220,11 @@ a {
 
   .zackos-project-card-thumb-wrap.square {
     height: 74px;
+  }
+
+  .zackos-project-card-thumb-wrap.landscape {
+    width: 108px;
+    height: 54px;
   }
 
   .zackos-project-detail-header {

@@ -542,11 +542,11 @@ function ProjectsIndex({ onOpenProject }: { onOpenProject: (slug: string) => voi
             <button
               type="button"
               key={project.slug}
-              className="zackos-project-card"
+              className={`zackos-project-card ${project.previewShape === 'landscape' ? 'landscape-preview' : ''}`}
               onClick={() => onOpenProject(project.slug)}
             >
               <div
-                className={`zackos-project-card-thumb-wrap ${project.previewShape === 'square' ? 'square' : 'portrait'}`}
+                className={`zackos-project-card-thumb-wrap ${project.previewShape || 'portrait'}`}
                 aria-hidden="true"
               >
                 <img
