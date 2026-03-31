@@ -1,6 +1,6 @@
 import { useRef, useCallback, useState, useEffect } from 'react'
 import type { WindowState } from './types'
-import { AboutContent, ProjectsContent, FtnsContent, NoslopContent, NotepadContent, SketchpadContent } from './apps'
+import { AboutContent, ProjectsContent, FtnsContent, NoslopContent, NotepadContent, SketchpadContent, PomodoroContent } from './apps'
 
 const MIN_WIDTH = 240
 const MIN_HEIGHT = 160
@@ -152,6 +152,8 @@ export function Window({ window: win, isMobile = false, onClose, onFocus, onMove
         return <NotepadContent />
       case 'sketchpad':
         return <SketchpadContent />
+      case 'pomodoro':
+        return <PomodoroContent />
     }
   }
 

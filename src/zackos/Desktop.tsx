@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { AppId, WindowState, DesktopIcon, IconPosition } from './types'
-import { PersonIcon, FolderIcon, AppIcon, NotepadIcon, SketchpadIcon, GermIcon } from './icons'
+import { PersonIcon, FolderIcon, AppIcon, NotepadIcon, SketchpadIcon, GermIcon, TimerIcon } from './icons'
 import { Window } from './Window'
 import { BootScreen } from './BootScreen'
 
@@ -94,6 +94,7 @@ const ICONS: DesktopIcon[] = [
   { id: 'noslop', label: 'NOSLOP.', icon: 'germ' },
   { id: 'notepad', label: 'notepad', icon: 'notepad' },
   { id: 'sketchpad', label: 'sketchpad', icon: 'sketchpad' },
+  { id: 'pomodoro', label: 'pomodoro', icon: 'timer' },
 ]
 
 const WINDOW_TITLES: Record<AppId, string> = {
@@ -103,6 +104,7 @@ const WINDOW_TITLES: Record<AppId, string> = {
   noslop: 'NOSLOP.',
   notepad: 'Notepad',
   sketchpad: 'Sketchpad',
+  pomodoro: 'Pomodoro',
 }
 
 const WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
@@ -112,6 +114,7 @@ const WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
   noslop: { width: 500, height: 400 },
   notepad: { width: 480, height: 400 },
   sketchpad: { width: 560, height: 450 },
+  pomodoro: { width: 300, height: 360 },
 }
 
 function getDefaultIconPositions(): Record<AppId, IconPosition> {
@@ -130,6 +133,7 @@ function getIcon(type: DesktopIcon['icon']) {
     case 'notepad': return <NotepadIcon />
     case 'sketchpad': return <SketchpadIcon />
     case 'germ': return <GermIcon />
+    case 'timer': return <TimerIcon />
   }
 }
 

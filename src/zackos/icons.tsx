@@ -79,6 +79,19 @@ export function DownloadIcon() {
   )
 }
 
+export function TimerIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect x="1" y="1" width="30" height="30" fill="#fff" stroke="#000" strokeWidth="1"/>
+      <circle cx="16" cy="18" r="9" fill="none" stroke="#000" strokeWidth="1.5"/>
+      <line x1="16" y1="18" x2="16" y2="12" stroke="#000" strokeWidth="1.5"/>
+      <line x1="16" y1="18" x2="21" y2="21" stroke="#000" strokeWidth="1.5"/>
+      <line x1="12" y1="4" x2="20" y2="4" stroke="#000" strokeWidth="1.5"/>
+      <line x1="16" y1="4" x2="16" y2="9" stroke="#000" strokeWidth="1.5"/>
+    </svg>
+  )
+}
+
 export function GermIcon() {
   return (
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none">

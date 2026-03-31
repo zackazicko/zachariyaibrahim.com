@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import { DownloadIcon } from './icons'
 import { PROJECTS, type ProjectEntry, type ProjectMedia } from './projects'
@@ -1038,6 +1038,157 @@ export function SketchpadContent() {
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
         />
+      </div>
+    </div>
+  )
+}
+
+/* =============================================================================
+   POMODORO TIMER
+   ============================================================================= */
+
+const WORK_SECS = 25 * 60
+const BREAK_SECS = 5 * 60
+
+function playChime() {
+  try {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    const ctx = new AudioCtx()
+    const freqs = [880, 660, 440]
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.frequency.value = freq
+      osc.type = 'sine'
+      const t = ctx.currentTime + i * 0.28
+      gain.gain.setValueAtTime(0.25, t)
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6)
+      osc.start(t)
+      osc.stop(t + 0.6)
+    })
+  } catch (_) {}
+}
+
+export function PomodoroContent() {
+  const [mode, setMode] = useState<'work' | 'break'>('work')
+  const [timeLeft, setTimeLeft] = useState(WORK_SECS)
+  const [running, setRunning] = useState(false)
+  const [done, setDone] = useState(false)
+  const modeRef = useRef(mode)
+
+  useEffect(() => { modeRef.current = mode }, [mode])
+
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!running) return
+    const id = window.setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(id)
+          setRunning(false)
+          setDone(true)
+          playChime()
+          if ('Notification' in window && Notification.permission === 'granted') {
+            const isWork = modeRef.current === 'work'
+            new Notification(isWork ? 'Session complete! 🍅' : 'Break over!', {
+              body: isWork ? 'Time for a break.' : 'Back to work.',
+            })
+          }
+          return 0
+        }
+        return t - 1
+      })
+    }, 1000)
+    return () => clearInterval(id)
+  }, [running])
+
+  const handleModeChange = (newMode: 'work' | 'break') => {
+    setMode(newMode)
+    setRunning(false)
+    setDone(false)
+    setTimeLeft(newMode === 'work' ? WORK_SECS : BREAK_SECS)
+  }
+
+  const handleReset = () => {
+    setRunning(false)
+    setDone(false)
+    setTimeLeft(mode === 'work' ? WORK_SECS : BREAK_SECS)
+  }
+
+  const total = mode === 'work' ? WORK_SECS : BREAK_SECS
+  const progress = (total - timeLeft) / total
+  const minutes = Math.floor(timeLeft / 60)
+  const seconds = timeLeft % 60
+
+  const SIZE = 160
+  const STROKE = 10
+  const RADIUS = (SIZE - STROKE) / 2
+  const CIRCUMFERENCE = useMemo(() => 2 * Math.PI * RADIUS, [RADIUS])
+  const dashOffset = CIRCUMFERENCE * (1 - progress)
+
+  const statusText = done
+    ? 'done'
+    : running
+      ? mode === 'work' ? 'focus' : 'resting'
+      : 'paused'
+
+  return (
+    <div className="zackos-pomodoro">
+      <div className="zackos-pomodoro-toolbar">
+        <button
+          className={`zackos-toolbar-btn ${mode === 'work' ? 'selected' : ''}`}
+          onClick={() => handleModeChange('work')}
+        >
+          Work (25m)
+        </button>
+        <button
+          className={`zackos-toolbar-btn ${mode === 'break' ? 'selected' : ''}`}
+          onClick={() => handleModeChange('break')}
+        >
+          Break (5m)
+        </button>
+      </div>
+      <div className="zackos-pomodoro-body">
+        <div className="zackos-pomodoro-ring-wrap">
+          <svg width={SIZE} height={SIZE} className="zackos-pomodoro-svg">
+            <circle
+              cx={SIZE / 2} cy={SIZE / 2} r={RADIUS}
+              fill="none" stroke="#ddd" strokeWidth={STROKE}
+            />
+            <circle
+              cx={SIZE / 2} cy={SIZE / 2} r={RADIUS}
+              fill="none" stroke="#000" strokeWidth={STROKE}
+              strokeDasharray={CIRCUMFERENCE}
+              strokeDashoffset={dashOffset}
+              strokeLinecap="butt"
+              transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
+              style={{ transition: running ? 'stroke-dashoffset 0.8s linear' : 'none' }}
+            />
+          </svg>
+          <div className="zackos-pomodoro-time">
+            {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+          </div>
+        </div>
+        <div className="zackos-pomodoro-status">{statusText}</div>
+        <div className="zackos-pomodoro-controls">
+          <button
+            className="zackos-toolbar-btn"
+            onClick={() => !done && setRunning(r => !r)}
+            disabled={done}
+          >
+            {running ? 'Pause' : 'Start'}
+          </button>
+          <button className="zackos-toolbar-btn" onClick={handleReset}>
+            Reset
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -489,6 +489,84 @@ a {
 }
 
 /* =============================================================================
+   POMODORO TIMER
+   ============================================================================= */
+
+.zackos-pomodoro {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.zackos-pomodoro-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-bottom: 1px solid #ccc;
+  background: #eee;
+  flex-shrink: 0;
+}
+
+.zackos-pomodoro-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+}
+
+.zackos-pomodoro-ring-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zackos-pomodoro-svg {
+  display: block;
+}
+
+.zackos-pomodoro-time {
+  position: absolute;
+  font-family: "Monaco", "Courier New", monospace;
+  font-size: 24px;
+  font-weight: bold;
+  color: #000;
+  letter-spacing: -1px;
+  user-select: none;
+}
+
+.zackos-pomodoro-status {
+  font-size: 10px;
+  color: #666;
+  font-family: inherit;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  height: 14px;
+  user-select: none;
+}
+
+.zackos-pomodoro-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.zackos-pomodoro-controls .zackos-toolbar-btn {
+  min-width: 56px;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.zackos-pomodoro-controls .zackos-toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* =============================================================================
    PAGE CONTENT (About, Projects, Ftns)
    ============================================================================= */
 
