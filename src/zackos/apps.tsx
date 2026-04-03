@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import useEmblaCarousel from 'embla-carousel-react'
 import { DownloadIcon } from './icons'
 import { PROJECTS, type ProjectEntry, type ProjectMedia } from './projects'
@@ -9,8 +10,6 @@ import { PROJECTS, type ProjectEntry, type ProjectMedia } from './projects'
    ============================================================================= */
 
 const animatedPages = new Set<string>()
-const PROJECTS_MOBILE_BREAKPOINT = 640
-
 function countChars(node: React.ReactNode): number {
   if (node == null || typeof node === 'boolean') return 0
   if (typeof node === 'string') return node.length
@@ -146,23 +145,6 @@ function ProjectMediaFrame({
   )
 }
 
-function useIsMobileViewport() {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth <= PROJECTS_MOBILE_BREAKPOINT
-  )
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= PROJECTS_MOBILE_BREAKPOINT)
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  return isMobile
-}
-
 function PhotoViewer({
   media,
   index,
@@ -182,13 +164,20 @@ function PhotoViewer({
   onPrev: () => void
   onNext: () => void
 }) {
-  const isMobile = useIsMobileViewport()
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [isPanning, setIsPanning] = useState(false)
   const canvasRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
   const panStartRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null)
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prevOverflow
+    }
+  }, [])
 
   const clampPan = useCallback((x: number, y: number, nextZoom: number) => {
     const canvas = canvasRef.current
@@ -287,9 +276,9 @@ function PhotoViewer({
     setIsPanning(false)
   }, [])
 
-  return (
+  return createPortal(
     <div
-      className={`zackos-photo-viewer-overlay ${isMobile ? 'mobile' : ''}`}
+      className="zackos-photo-viewer-overlay"
       role="dialog"
       aria-modal="true"
       aria-label="Photo viewer"
@@ -297,7 +286,7 @@ function PhotoViewer({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className={`zackos-photo-viewer ${isMobile ? 'mobile' : ''}`}>
+      <div className="zackos-photo-viewer">
         <div className="zackos-photo-viewer-header">
           <div className="zackos-photo-viewer-close">
             <div className="zackos-window-dots">
@@ -362,7 +351,8 @@ function PhotoViewer({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
