@@ -29,6 +29,51 @@ export interface ProjectEntry {
 
 export const PROJECTS: ProjectEntry[] = [
   {
+    slug: 'fjr',
+    title: 'fjr',
+    subtitle: 'Fajr alarm, relative to dawn',
+    platform: 'iOS (Swift)',
+    previewSrc: '/projects/fjr/logo.png',
+    previewFit: 'contain',
+    previewShape: 'square',
+    summary:
+      'A Swift iOS app that sets your wake-up alarm from plain language—minutes before or after Fajr or sunrise—using Apple’s AlarmKit.',
+    description: [
+      'I spent 72 hours building fjr to save myself about 45 seconds every night. The problem it solves for me and my Muslim peers is that Fajr prayer time changes every day because it tracks the appearance of dawn. Muslims have to wake up to catch this prayer before sunrise, so they set a fresh alarm every night so they do not miss Fajr. My nightly routine was to check the Fajr and sunrise times, set an alarm somewhere between those two depending on when I wanted to wake up, and hope I did not forget or mess up. Some days that was 10 minutes before Fajr, other days 15 minutes before sunrise.',
+      'That caused a few issues. First, my alarm app filled up with random minute-increment alarms, which made the app feel cluttered and defeated the point of saving alarm presets. Second, if I forgot to set my Fajr alarm I would miss the prayer—not good. Finally, the mental math got annoying, especially in Ramadan when I was waking up before Fajr for my last sips of water.',
+      'I knew this could be solved because Apple released AlarmKit at WWDC25, letting developers use iOS’ native alarm screen and break through Focus modes (DND, Sleep, and so on). In 2026 I sketched the solution I wanted and used it as a reason to get comfortable building Swift apps with Claude Code.',
+      'The shipped result is, in my view, a very sleek UX for the problem. Users configure alarms by tapping the “Wake me up x minutes before/after Fajr/sunrise” sentence; the alarm updates automatically. They always know when they are waking up relative to Fajr and can change behavior through a sentence that stays easy to understand.',
+    ],
+    links: [],
+    media: [
+      {
+        type: 'image',
+        src: '/projects/fjr/01.jpg',
+        alt: 'fjr main screen with wake time sentence and Fajr-related alarm controls.',
+      },
+      {
+        type: 'image',
+        src: '/projects/fjr/02.jpg',
+        alt: 'fjr interface showing prayer time context and alarm scheduling.',
+      },
+      {
+        type: 'image',
+        src: '/projects/fjr/03.jpg',
+        alt: 'fjr screen highlighting minutes before or after Fajr or sunrise.',
+      },
+      {
+        type: 'image',
+        src: '/projects/fjr/04.jpg',
+        alt: 'fjr additional view of the Fajr alarm experience on iPhone.',
+      },
+      {
+        type: 'image',
+        src: '/projects/fjr/05.jpg',
+        alt: 'fjr App Store–style showcase of the alarm and timing flow.',
+      },
+    ],
+  },
+  {
     slug: 'ftns',
     title: 'ftns.',
     subtitle: 'Fitness tracking, simplified',
