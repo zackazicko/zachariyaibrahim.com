@@ -17,14 +17,15 @@ export function FolderIcon() {
   )
 }
 
-export function AppIcon() {
+export function BarbellIcon() {
   return (
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
       <rect x="1" y="1" width="30" height="30" fill="#fff" stroke="#000" strokeWidth="1"/>
-      <rect x="6" y="6" width="20" height="4" fill="#000"/>
-      <rect x="6" y="14" width="20" height="2" fill="#000"/>
-      <rect x="6" y="20" width="14" height="2" fill="#000"/>
-      <rect x="6" y="26" width="10" height="2" fill="#000"/>
+      <g transform="translate(16 16) scale(0.8) translate(-16 -16)">
+        <rect x="2" y="8" width="6" height="16" fill="#000"/>
+        <rect x="8" y="14" width="16" height="4" fill="#000"/>
+        <rect x="24" y="8" width="6" height="16" fill="#000"/>
+      </g>
     </svg>
   )
 }

@@ -1184,9 +1184,12 @@ a {
 
   .zackos-icons-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: 16px;
     padding: 16px;
+    justify-content: start;
   }
 
   .zackos-icon {

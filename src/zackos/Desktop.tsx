@@ -1,11 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { AppId, WindowState, DesktopIcon, IconPosition } from './types'
-import { PersonIcon, FolderIcon, AppIcon, NotepadIcon, SketchpadIcon, GermIcon, TimerIcon } from './icons'
+import { PersonIcon, FolderIcon, BarbellIcon, NotepadIcon, SketchpadIcon, GermIcon, TimerIcon } from './icons'
 import { Window } from './Window'
 import { BootScreen } from './BootScreen'
 
 const MOBILE_BREAKPOINT = 640
 const MENUBAR_HEIGHT = 22
+const ICONS_PER_COLUMN = 4
+const ICON_ROW_STEP = 80
+const ICON_COL_STEP = 100
 const INTRO_ICON_CURSOR_X = 30
 const INTRO_ICON_CURSOR_Y = 24
 
@@ -90,7 +93,7 @@ function getAutoLaunchWindowPlacements() {
 const ICONS: DesktopIcon[] = [
   { id: 'about', label: 'zachariyaibrahim.about', icon: 'person' },
   { id: 'projects', label: 'projects', icon: 'folder' },
-  { id: 'ftns', label: 'ftns', icon: 'app' },
+  { id: 'ftns', label: 'ftns', icon: 'barbell' },
   { id: 'noslop', label: 'NOSLOP.', icon: 'germ' },
   { id: 'notepad', label: 'notepad', icon: 'notepad' },
   { id: 'sketchpad', label: 'sketchpad', icon: 'sketchpad' },
@@ -120,7 +123,12 @@ const WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
 function getDefaultIconPositions(): Record<AppId, IconPosition> {
   const positions: Record<string, IconPosition> = {}
   ICONS.forEach((icon, i) => {
-    positions[icon.id] = { x: 16, y: 32 + i * 80 } // Account for menubar height
+    const col = Math.floor(i / ICONS_PER_COLUMN)
+    const row = i % ICONS_PER_COLUMN
+    positions[icon.id] = {
+      x: 16 + col * ICON_COL_STEP,
+      y: 32 + row * ICON_ROW_STEP,
+    }
   })
   return positions as Record<AppId, IconPosition>
 }
@@ -129,7 +137,7 @@ function getIcon(type: DesktopIcon['icon']) {
   switch (type) {
     case 'person': return <PersonIcon />
     case 'folder': return <FolderIcon />
-    case 'app': return <AppIcon />
+    case 'barbell': return <BarbellIcon />
     case 'notepad': return <NotepadIcon />
     case 'sketchpad': return <SketchpadIcon />
     case 'germ': return <GermIcon />

@@ -17,7 +17,7 @@ export interface WindowState {
 export interface DesktopIcon {
   id: AppId
   label: string
-  icon: 'person' | 'folder' | 'app' | 'notepad' | 'sketchpad' | 'germ' | 'timer'
+  icon: 'person' | 'folder' | 'barbell' | 'notepad' | 'sketchpad' | 'germ' | 'timer'
 }
 
 export interface IconPosition {
