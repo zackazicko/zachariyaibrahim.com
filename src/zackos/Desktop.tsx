@@ -120,7 +120,7 @@ const WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
   notepad: { width: 480, height: 400 },
   sketchpad: { width: 560, height: 450 },
   pomodoro: { width: 300, height: 360 },
-  jevitations: { width: 520, height: 434 },
+  jevitations: { width: 520, height: 448 },
 }
 
 function getDefaultIconPositions(): Record<AppId, IconPosition> {
