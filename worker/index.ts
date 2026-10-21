@@ -5,7 +5,7 @@
    ============================================================================= */
 
 import meditations from '../src/zackos/jevitations/meditations.json'
-import { match, PROMPT_REVISION, type Corpus, type MatchConfig, type MatchEvent } from './jev'
+import { match, PROMPT_REVISION, PROMPT_STYLES, type Corpus, type MatchConfig, type MatchEvent, type PromptStyle } from './jev'
 
 interface Env {
   ASSETS: Fetcher
@@ -16,7 +16,7 @@ interface Env {
   JEV_PROMPT?: string
   JEV_USE_GLOSS?: string
   JEV_BATCH_SIZE?: string
-  JEV_DAILY_CAP?: string
+  JEV_DAILY_TOKENS?: string
   JEV_MOCK?: string
 }
 
@@ -28,6 +28,8 @@ const MIN_QUOTE = 3
 const MAX_QUOTE = 400
 const CACHE_TTL = 60 * 60 * 24 * 30
 const CACHE_VERSION = 'v1'
+// Rough input tokens per passage, measured on a full search, used to check the budget up front
+const TOKENS_PER_PASSAGE = 345
 
 function json(status: number, body: unknown, headers: HeadersInit = {}) {
   return new Response(JSON.stringify(body), {
@@ -50,14 +52,18 @@ async function sha256(text: string) {
 }
 
 // Preview and local hosts accept per-request overrides so the eval script can compare prompt variants
-function config(env: Env, request: Request): MatchConfig {
+function isTunable(request: Request) {
   const host = new URL(request.url).hostname
-  const tunable = host.endsWith('.workers.dev') || host === 'localhost' || host === '127.0.0.1'
+  return host.endsWith('.workers.dev') || host === 'localhost' || host === '127.0.0.1'
+}
+
+function config(env: Env, request: Request): MatchConfig {
+  const tunable = isTunable(request)
   const prompt = (tunable && request.headers.get('x-jev-prompt')) || env.JEV_PROMPT
   const gloss = (tunable && request.headers.get('x-jev-gloss')) || env.JEV_USE_GLOSS
   return {
     jevModel: env.JEV_MODEL || 'typesafe/jev-1.14.0',
-    prompt: prompt === 'noul' ? 'noul' : 'score',
+    prompt: PROMPT_STYLES.includes(prompt as PromptStyle) ? (prompt as PromptStyle) : 'score',
     useGloss: gloss !== 'false',
     batchSize: Number(env.JEV_BATCH_SIZE) || 60,
     mock: env.JEV_MOCK === '1',
@@ -88,8 +94,14 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
   }
 
   const persona = typeof body.persona === 'string' ? body.persona : 'marcus-aurelius'
-  const corpus = CORPORA[persona]
+  let corpus = CORPORA[persona]
   if (!corpus) return fail(400, 'persona', 'That persona is not available yet.')
+  // Preview hosts can score a subset of passages, which keeps prompt comparisons cheap
+  const subset = isTunable(request) ? request.headers.get('x-jev-ids') : null
+  if (subset) {
+    const ids = new Set(subset.split(','))
+    corpus = { ...corpus, passages: corpus.passages.filter(p => ids.has(p.id)) }
+  }
 
   const quote = typeof body.quote === 'string' ? normalize(body.quote) : ''
   if (quote.length < MIN_QUOTE) return fail(400, 'too_short', 'Type a few more words.')
@@ -100,19 +112,22 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
     `https://jevitations.cache/${CACHE_VERSION}/${persona}/${cfg.jevModel}/${cfg.prompt}${PROMPT_REVISION}/${cfg.useGloss ? 'g' : 'n'}/${await sha256(quote.toLowerCase())}`,
   )
   const cache = caches.default
-  const hit = await cache.match(cacheKey)
+  const hit = subset ? undefined : await cache.match(cacheKey)
   if (hit) return new Response(hit.body, { headers: { ...STREAM_HEADERS, 'x-jev-cache': 'hit' } })
 
   const ip = request.headers.get('cf-connecting-ip') || 'unknown'
   const { success } = await env.MATCH_LIMITER.limit({ key: ip })
   if (!success) return fail(429, 'rate_limited', 'Marcus needs a moment. Try again in a minute.', { 'retry-after': '60' })
 
+  // The daily budget is counted in model input tokens, the unit Workers AI bills in
   const day = new Date().toISOString().slice(0, 10)
-  const countKey = `count:${day}`
-  const cap = Number(env.JEV_DAILY_CAP) || 500
-  const used = Number(await env.JEV_KV.get(countKey)) || 0
-  if (used >= cap) return fail(429, 'daily_cap', 'Marcus is resting until tomorrow.')
-  ctx.waitUntil(env.JEV_KV.put(countKey, String(used + 1), { expirationTtl: 60 * 60 * 48 }))
+  const budgetKey = `tokens:${day}`
+  const budget = Number(env.JEV_DAILY_TOKENS) || 2_800_000
+  const estimate = corpus.passages.length * TOKENS_PER_PASSAGE
+  const used = Number(await env.JEV_KV.get(budgetKey)) || 0
+  if (used + estimate > budget) return fail(429, 'daily_cap', 'Marcus is resting until tomorrow.')
+  const spend = (tokens: number) =>
+    env.JEV_KV.put(budgetKey, String(used + tokens), { expirationTtl: 60 * 60 * 48 })
 
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>()
   const writer = writable.getWriter()
@@ -127,7 +142,8 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
     (async () => {
       try {
         const done = await match(env.AI, cfg, corpus, quote, emit)
-        if (!done.partial && done.ranked.length) {
+        await spend(done.inputTokens || estimate)
+        if (!subset && !done.partial && done.ranked.length) {
           const cached = new Response(ndjson(events), {
             headers: { ...STREAM_HEADERS, 'cache-control': `public, max-age=${CACHE_TTL}` },
           })
@@ -136,6 +152,7 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
       } catch (err) {
         const error = (err instanceof Error ? err.message : String(err)).slice(0, 300)
         console.error(`jev match failed: ${error}`)
+        await spend(estimate).catch(() => {})
         emit({ type: 'done', partial: true, inputTokens: 0, ranked: [], error })
       } finally {
         await writer.close().catch(() => {})

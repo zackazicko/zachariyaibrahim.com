@@ -2,12 +2,16 @@
 // Run against a worker with the real AI binding, for example the branch preview:
 //   node scripts/eval-jev.mjs https://jevitations-zachariyaibrahimdotcom.zacki917.workers.dev
 // Compare prompt variants (honoured on preview and local hosts only):
-//   node scripts/eval-jev.mjs <url> score:gloss noul:gloss score:plain
-// Each case is one full search, so it spends one search of the daily cap.
+//   node scripts/eval-jev.mjs <url> score:gloss noul:gloss point:plain
+// By default each case scores a fixed subset (every expected passage plus every 4th passage
+// as distractors, about a third of the book) so comparisons cost a third of a full search.
+// Pass --full to rank against the whole book, as the app does.
 
 import { readFileSync } from 'node:fs'
 
-const [base = 'http://localhost:8787', ...variantArgs] = process.argv.slice(2)
+const args = process.argv.slice(2)
+const full = args.includes('--full')
+const [base = 'http://localhost:8787', ...variantArgs] = args.filter(a => a !== '--full')
 const variants = variantArgs.length ? variantArgs : ['default']
 const corpus = JSON.parse(readFileSync(new URL('../src/zackos/jevitations/meditations.json', import.meta.url)))
 const byId = new Map(corpus.passages.map(p => [p.id, p]))
@@ -23,8 +27,13 @@ const CASES = [
   ['Nobody will remember your name in a hundred years', ['4.XVI', '4.XXVIII', '5.XXVII', '6.XVII']],
 ]
 
+const subset = [
+  ...new Set([...CASES.flatMap(([, expected]) => expected), ...corpus.passages.filter((_, i) => i % 4 === 0).map(p => p.id)]),
+]
+
 function headersFor(variant) {
   const headers = { 'content-type': 'application/json' }
+  if (!full) headers['x-jev-ids'] = subset.join(',')
   if (variant !== 'default') {
     const [prompt, gloss] = variant.split(':')
     headers['x-jev-prompt'] = prompt
@@ -49,6 +58,8 @@ async function run(quote, variant) {
 }
 
 const snippet = id => (byId.get(id)?.text ?? '').slice(0, 70).replace(/\s+/g, ' ')
+
+console.log(full ? `Ranking against all ${corpus.passages.length} passages` : `Ranking against a ${subset.length}-passage subset`)
 
 for (const variant of variants) {
   console.log(`\n=== ${variant} ===`)

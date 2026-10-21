@@ -1,11 +1,12 @@
 # Runs scripts/eval-jev.mjs against the branch preview once Workers Builds has deployed it.
-# Only commits whose message contains "[eval]" or "[eval <variants>]" run it, since every
-# case spends one search of the daily cap.
+# It runs only when scripts/eval-variants.txt changes, since every case spends part of the
+# daily model budget. That file holds the arguments: variants, and --full for the whole book.
 name: Eval matcher
 
 on:
   push:
     branches: [jevitations]
+    paths: [scripts/eval-variants.txt]
 
 permissions:
   checks: read
@@ -13,7 +14,6 @@ permissions:
 
 jobs:
   eval:
-    if: contains(github.event.head_commit.message, '[eval')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -36,9 +36,6 @@ jobs:
           done
           exit 1
       - name: Run eval
-        env:
-          MESSAGE: ${{ github.event.head_commit.message }}
         run: |
-          variants=$(printf '%s' "$MESSAGE" | grep -o '\[eval[^]]*\]' | head -1 | sed -e 's/^\[eval//' -e 's/\]$//')
-          node scripts/eval-jev.mjs "$PREVIEW" $variants | tee eval.txt
+          node scripts/eval-jev.mjs "$PREVIEW" $(grep -v '^#' scripts/eval-variants.txt) | tee eval.txt
           { echo '```'; cat eval.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

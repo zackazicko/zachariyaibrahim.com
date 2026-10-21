@@ -76,7 +76,16 @@ const SCORE_RUBRIC = [
   'The same core idea',
 ]
 
-export type PromptStyle = 'noul' | 'score'
+// point: the same graded score, with a scale that names surface overlap as its own low level
+const POINT_RUBRIC = [
+  'Unrelated: a different idea',
+  'Shares only a topic, word or image with the quote, not its point',
+  'Related: supports or overlaps with the point the quote makes',
+  'Same point: says what the quote means, in its own terms',
+]
+
+export const PROMPT_STYLES = ['noul', 'score', 'point'] as const
+export type PromptStyle = (typeof PROMPT_STYLES)[number]
 export const PROMPT_REVISION = 2
 
 export function buildState(quote: string, style: PromptStyle) {
@@ -112,7 +121,7 @@ export function buildQuestions(batch: Passage[], useGloss: boolean, style: Promp
       instructions:
         `Meditations passage (1634 English): "${p.text}"${gloss}\n` +
         'How closely does this passage express the idea behind the quote? Judge meaning, not shared words.',
-      criteria: SCORE_RUBRIC,
+      criteria: style === 'point' ? POINT_RUBRIC : SCORE_RUBRIC,
     }
   }
   return questions
@@ -134,7 +143,7 @@ async function runBatch(ai: Ai, cfg: MatchConfig, quote: string, batch: Passage[
   for (const p of batch) {
     const a = res?.answers?.[questionKey(p.id)]
     // Scores come back as an expected rubric level; scale them to 0..1 like noul probabilities
-    const v = cfg.prompt === 'score' ? (a?.score ?? NaN) / (SCORE_RUBRIC.length - 1) : a?.noul
+    const v = cfg.prompt === 'noul' ? a?.noul : (a?.score ?? NaN) / (SCORE_RUBRIC.length - 1)
     if (typeof v === 'number' && Number.isFinite(v)) scores[p.id] = Math.round(v * 1000) / 1000
   }
   if (!Object.keys(scores).length) throw new Error(`no answers in response: ${JSON.stringify(res).slice(0, 200)}`)
