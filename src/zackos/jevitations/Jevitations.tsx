@@ -32,6 +32,8 @@ const PERSONAS = [
   { id: 'epictetus', name: 'Epictetus', ready: false, beard: true },
 ]
 const UNREACHABLE = 'Marcus could not be reached. Try again.'
+// Upstream error text shows only on preview and local hosts, never on the live site
+const SHOW_ERROR_DETAIL = /(^localhost$|^127\.|\.workers\.dev$)/.test(window.location.hostname)
 
 // Drum geometry: row height, rows drawn each side of centre, degrees per row
 const ROW_H = 30
@@ -418,7 +420,7 @@ export function JevitationsContent() {
             const passage = corpus.get(r.id)
             return passage ? [{ passage, score: r.score }] : []
           })
-          if (!ranked.length) throw new Error(e.error ? `${UNREACHABLE}\n${e.error}` : UNREACHABLE)
+          if (!ranked.length) throw new Error(e.error && SHOW_ERROR_DETAIL ? `${UNREACHABLE}\n${e.error}` : UNREACHABLE)
           setError(null)
           setMatches(ranked)
           setFeatured({ index: 0, animate: true })
