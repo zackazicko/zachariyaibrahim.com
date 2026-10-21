@@ -1518,3 +1518,413 @@ a {
 .privacy-footer a:hover {
   color: #fff;
 }
+
+/* =============================================================================
+   JEVITATIONS
+   ============================================================================= */
+
+.jev {
+  --jev-gray: #808080;
+  --jev-light: #dcdcdc;
+  --jev-dither: url("data:image/svg+xml,%3Csvg width='2' height='2' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1' height='1' fill='%23000' fill-opacity='.18'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23000' fill-opacity='.18'/%3E%3C/svg%3E");
+  --jev-read: Georgia, "Times New Roman", serif;
+  --jev-mono: "Monaco", "Courier New", monospace;
+  align-self: stretch;
+  width: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  font-size: 12px;
+  color: #000;
+}
+
+.jev.busy {
+  cursor: wait;
+}
+
+.jev-search {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+/* Inset text well with a 1-bit magnifier, like a Find field */
+.jev-sbox {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 7px;
+  border: 1px solid #000;
+  background: #fff;
+  box-shadow: inset 1px 1px 0 var(--jev-gray), inset -1px -1px 0 var(--jev-light);
+}
+
+.jev-sbox:focus-within {
+  box-shadow: inset 1px 1px 0 var(--jev-gray), inset -1px -1px 0 var(--jev-light), 0 0 0 1px #fff, 0 0 0 3px #000;
+}
+
+.jev-sbox svg {
+  flex: none;
+}
+
+.jev-sbox input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  padding: 0 4px 0 0;
+  font: inherit;
+  font-size: 12px;
+  color: #000;
+  background: transparent;
+  outline: none;
+}
+
+.jev-sbox input::placeholder {
+  color: var(--jev-gray);
+}
+
+.jev-sbox input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.jev-pips {
+  display: flex;
+  gap: 3px;
+  padding-right: 8px;
+}
+
+.jev-pip {
+  width: 10px;
+  height: 6px;
+  border: 1px solid #000;
+}
+
+.jev-pip.on {
+  background: #000;
+}
+
+/* Persona: System 7 popup menu */
+.jev-persona {
+  position: relative;
+  flex: none;
+}
+
+.jev-persona-btn {
+  height: 28px;
+  margin-right: 1px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #000;
+  box-shadow: 1px 1px 0 #000;
+  font: inherit;
+  font-size: 12px;
+  color: #000;
+  cursor: pointer;
+}
+
+.jev-persona-btn:hover {
+  background: #eee;
+}
+
+.jev-persona-btn:active {
+  background: #000;
+  color: #fff;
+}
+
+.jev-tri {
+  width: 0;
+  height: 0;
+  margin-left: 4px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+}
+
+.jev-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  right: 0;
+  z-index: 5;
+  min-width: 190px;
+  padding: 2px 0;
+  background: #fff;
+  border: 1px solid #000;
+  box-shadow: 1px 1px 0 #000;
+}
+
+.jev-menu button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 10px 4px 6px;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  color: #000;
+  cursor: pointer;
+}
+
+.jev-menu button:hover:not(:disabled) {
+  background: #000;
+  color: #fff;
+}
+
+.jev-menu button:disabled {
+  color: #999;
+  cursor: default;
+}
+
+.jev-tick {
+  width: 10px;
+}
+
+/* Featured passage: modal-dialog double frame, scrolls inside */
+.jev-featured {
+  flex-shrink: 0;
+  height: 186px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 10px;
+  border: 1px solid #000;
+  box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 3px #000, 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.jev-featured.open {
+  height: auto;
+  min-height: 186px;
+}
+
+.jev-passage {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+  overscroll-behavior: contain;
+  font: 14px/1.5 var(--jev-read);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.jev-featured.open .jev-passage {
+  overflow: visible;
+}
+
+.jev-passage::-webkit-scrollbar {
+  width: 13px;
+}
+
+.jev-passage::-webkit-scrollbar-track {
+  background: #fff var(--jev-dither);
+  border-left: 1px solid #000;
+}
+
+.jev-passage::-webkit-scrollbar-thumb {
+  background: #fff;
+  border: 1px solid #000;
+}
+
+.jev-caret {
+  animation: jev-blink 1s steps(1) infinite;
+}
+
+@keyframes jev-blink {
+  50% { opacity: 0; }
+}
+
+.jev-fcite {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px dotted #000;
+}
+
+.jev-cite {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.jev-rank {
+  color: #666;
+}
+
+.jev-more {
+  margin-left: 4px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: underline;
+  color: #000;
+  cursor: pointer;
+}
+
+.jev-fcite .jev-score {
+  margin-left: auto;
+}
+
+.jev-alert {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.jev-alert svg {
+  flex: none;
+}
+
+.jev-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  font-family: var(--jev-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.jev-sq {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+/* Rolodex: a looping drum, centre row is the featured passage */
+.jev-dial {
+  position: relative;
+  flex-shrink: 0;
+  height: 150px;
+  overflow: hidden;
+  border: 1px solid #000;
+  background: #fff;
+  perspective: 420px;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.jev-dial:active {
+  cursor: grabbing;
+}
+
+.jev-dial:focus-visible,
+.jev-persona-btn:focus-visible,
+.jev-more:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 1px;
+}
+
+.jev-dial::before,
+.jev-dial::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.jev-dial::before {
+  top: 0;
+  background: linear-gradient(#fff, rgba(255, 255, 255, 0));
+}
+
+.jev-dial::after {
+  bottom: 0;
+  background: linear-gradient(rgba(255, 255, 255, 0), #fff);
+}
+
+.jev-lens {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 60px;
+  height: 30px;
+  z-index: 3;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  pointer-events: none;
+}
+
+.jev-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 60px;
+  height: 30px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 58px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 0 6px;
+  transform-origin: 50% 50% -74px;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.jev-rk {
+  font-family: var(--jev-mono);
+  font-size: 10px;
+  color: #666;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.jev-rt {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 12px var(--jev-read);
+}
+
+.jev-rt b {
+  margin-right: 5px;
+  font: 9px "Chicago", "Geneva", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 640px) {
+  .jev-persona-name {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jev-caret {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .jev-featured {
+    height: 260px;
+  }
+
+  .jev-featured.open {
+    min-height: 260px;
+  }
+}

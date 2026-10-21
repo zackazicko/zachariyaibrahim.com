@@ -1,6 +1,7 @@
 import { useRef, useCallback, useState, useEffect } from 'react'
 import type { WindowState } from './types'
 import { AboutContent, ProjectsContent, FtnsContent, NoslopContent, NotepadContent, SketchpadContent, PomodoroContent } from './apps'
+import { JevitationsContent } from './jevitations/Jevitations'
 
 const MIN_WIDTH = 240
 const MIN_HEIGHT = 160
@@ -154,6 +155,8 @@ export function Window({ window: win, isMobile = false, onClose, onFocus, onMove
         return <SketchpadContent />
       case 'pomodoro':
         return <PomodoroContent />
+      case 'jevitations':
+        return <JevitationsContent />
     }
   }
 
