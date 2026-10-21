@@ -1,8 +1,9 @@
 /* =============================================================================
    JEVITATIONS MATCHING
-   Jev is the only model called per search. It reads the quote as state and
-   answers one yes/no question per passage: does this passage share the
-   quote's core idea? The plain-English glosses are written ahead of time.
+   One decision model (Jev, or its drop-in peer Clef) is the only model called
+   per search. It reads the quote as state and answers one yes/no question per
+   passage: does this passage share the quote's core idea? The plain-English
+   glosses are written ahead of time.
    ============================================================================= */
 
 export interface Passage {
@@ -33,8 +34,8 @@ export type MatchEvent =
 
 // Jev and its drop-in peers take at most 64 questions per request, so batches stay under that.
 export const MAX_BATCH = 60
-// Jev's context window is 32k tokens per request. Archaic English runs about 3 characters a
-// token, so batches are packed by text length well under that, with room for per-question overhead.
+// Jev's context window is 32k tokens per request and Clef-flash's is 24k. Archaic English runs
+// about 3 characters a token, so batches are packed by text length well under both.
 export const MAX_BATCH_CHARS = 36_000
 
 export function makeBatches(passages: Passage[], size: number): Passage[][] {
@@ -88,7 +89,10 @@ interface JevResponse { answers?: Record<string, JevAnswer>; usage?: { input_tok
 
 async function runBatch(ai: Ai, cfg: MatchConfig, quote: string, batch: Passage[]) {
   if (cfg.mock) return mockJev(quote, batch)
+  // Clef speaks the same System One API as Jev but also wants its short name in the body
+  const clef = cfg.jevModel.match(/^@cf\/cloudflare\/(clef(?:-flash)?)$/)?.[1]
   const res = (await ai.run(cfg.jevModel as keyof AiModels, {
+    ...(clef ? { model: clef } : {}),
     state: { quote },
     questions: buildQuestions(batch, cfg.useGloss),
   } as never)) as JevResponse
