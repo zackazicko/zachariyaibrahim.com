@@ -33,7 +33,8 @@
     "JEV_MODEL": "@cf/cloudflare/clef-flash",
     "JEV_USE_GLOSS": "true",
     "JEV_BATCH_SIZE": "60",
-    "JEV_DAILY_CAP": "16"
+    "JEV_DAILY_CAP": "22",
+    "JEV_PROMPT": "score"
   },
   "previews": {
     "ai": {
@@ -59,7 +60,8 @@
       "JEV_MODEL": "@cf/cloudflare/clef-flash",
       "JEV_USE_GLOSS": "true",
       "JEV_BATCH_SIZE": "60",
-      "JEV_DAILY_CAP": "16"
+      "JEV_DAILY_CAP": "22",
+      "JEV_PROMPT": "score"
     }
   },
   "observability": {

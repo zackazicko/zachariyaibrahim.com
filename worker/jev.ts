@@ -22,6 +22,7 @@ export interface Corpus {
 
 export interface MatchConfig {
   jevModel: string
+  prompt: PromptStyle
   useGloss: boolean
   batchSize: number
   mock: boolean
@@ -57,34 +58,67 @@ export function makeBatches(passages: Passage[], size: number): Passage[][] {
   return batches
 }
 
+// v1: one yes/no question per passage, with the reading guide repeated in each question.
 const MATCH_CRITERIA = {
   true: 'The passage expresses the same underlying idea, advice or attitude that the quote means, even if its topic, images and wording are completely different.',
   false: 'The passage is about a different idea, or it only shares words, images or a surface topic with the literal wording of the quote.',
 }
 
 const READING_GUIDE =
-  '`quote` is something a person typed: a saying, tweet, lyric or slogan. First read it the way a fluent native speaker would, taking idioms, slang, sarcasm and metaphors figuratively, and settle on the general idea or attitude it expresses.' 
+  '`quote` is something a person typed: a saying, tweet, lyric or slogan. First read it the way a fluent native speaker would, taking idioms, slang, sarcasm and metaphors figuratively, and settle on the general idea or attitude it expresses.'
+
+// v2: the reading guide lives once in the state, and each passage gets a graded score, so
+// near-ties between the many passages that touch a theme are ranked by how closely they match.
+const SCORE_RUBRIC = [
+  'A different idea',
+  'Same broad theme, but a different point',
+  'A closely related point',
+  'The same core idea',
+]
+
+export type PromptStyle = 'noul' | 'score'
+export const PROMPT_REVISION = 2
+
+export function buildState(quote: string, style: PromptStyle) {
+  if (style === 'noul') return { quote }
+  return (
+    `A person typed this quote: "${quote}"\n` +
+    'Read it the way a fluent native speaker would, taking idioms, slang, sarcasm and metaphors figuratively, ' +
+    'and work out the idea, advice or attitude it expresses. That idea is what each passage is compared against.'
+  )
+}
 
 export function questionKey(id: string) {
   return 'p_' + id.replace('.', '_')
 }
 
-export function buildQuestions(batch: Passage[], useGloss: boolean) {
+export function buildQuestions(batch: Passage[], useGloss: boolean, style: PromptStyle) {
   const questions: Record<string, unknown> = {}
   for (const p of batch) {
-    const gloss = useGloss ? `\nPlain-English gloss of the passage: ${p.principle}` : ''
+    if (style === 'noul') {
+      const gloss = useGloss ? `\nPlain-English gloss of the passage: ${p.principle}` : ''
+      questions[questionKey(p.id)] = {
+        type: 'noul',
+        instructions:
+          `Passage from Marcus Aurelius's Meditations (1634 translation, archaic English):\n"${p.text}"${gloss}\n\n` +
+          `${READING_GUIDE} Does this passage share that core idea? Judge the idea, not the words.`,
+        criteria: MATCH_CRITERIA,
+      }
+      continue
+    }
+    const gloss = useGloss ? `\nIn plain English: ${p.principle}` : ''
     questions[questionKey(p.id)] = {
-      type: 'noul',
+      type: 'score',
       instructions:
-        `Passage from Marcus Aurelius's Meditations (1634 translation, archaic English):\n"${p.text}"${gloss}\n\n` +
-        `${READING_GUIDE} Does this passage share that core idea? Judge the idea, not the words.`,
-      criteria: MATCH_CRITERIA,
+        `Meditations passage (1634 English): "${p.text}"${gloss}\n` +
+        'How closely does this passage express the idea behind the quote? Judge meaning, not shared words.',
+      criteria: SCORE_RUBRIC,
     }
   }
   return questions
 }
 
-interface JevAnswer { noul?: number }
+interface JevAnswer { noul?: number; score?: number }
 interface JevResponse { answers?: Record<string, JevAnswer>; usage?: { input_tokens?: number } }
 
 async function runBatch(ai: Ai, cfg: MatchConfig, quote: string, batch: Passage[]) {
@@ -93,13 +127,15 @@ async function runBatch(ai: Ai, cfg: MatchConfig, quote: string, batch: Passage[
   const clef = cfg.jevModel.match(/^@cf\/cloudflare\/(clef(?:-flash)?)$/)?.[1]
   const res = (await ai.run(cfg.jevModel as keyof AiModels, {
     ...(clef ? { model: clef } : {}),
-    state: { quote },
-    questions: buildQuestions(batch, cfg.useGloss),
+    state: buildState(quote, cfg.prompt),
+    questions: buildQuestions(batch, cfg.useGloss, cfg.prompt),
   } as never)) as JevResponse
   const scores: Record<string, number> = {}
   for (const p of batch) {
-    const v = res?.answers?.[questionKey(p.id)]?.noul
-    if (typeof v === 'number') scores[p.id] = v
+    const a = res?.answers?.[questionKey(p.id)]
+    // Scores come back as an expected rubric level; scale them to 0..1 like noul probabilities
+    const v = cfg.prompt === 'score' ? (a?.score ?? NaN) / (SCORE_RUBRIC.length - 1) : a?.noul
+    if (typeof v === 'number' && Number.isFinite(v)) scores[p.id] = Math.round(v * 1000) / 1000
   }
   if (!Object.keys(scores).length) throw new Error(`no answers in response: ${JSON.stringify(res).slice(0, 200)}`)
   return { scores, inputTokens: res?.usage?.input_tokens ?? 0 }

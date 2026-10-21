@@ -5,7 +5,7 @@
    ============================================================================= */
 
 import meditations from '../src/zackos/jevitations/meditations.json'
-import { match, type Corpus, type MatchConfig, type MatchEvent } from './jev'
+import { match, PROMPT_REVISION, type Corpus, type MatchConfig, type MatchEvent } from './jev'
 
 interface Env {
   ASSETS: Fetcher
@@ -13,6 +13,7 @@ interface Env {
   MATCH_LIMITER: RateLimit
   JEV_KV: KVNamespace
   JEV_MODEL?: string
+  JEV_PROMPT?: string
   JEV_USE_GLOSS?: string
   JEV_BATCH_SIZE?: string
   JEV_DAILY_CAP?: string
@@ -48,10 +49,16 @@ async function sha256(text: string) {
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
-function config(env: Env): MatchConfig {
+// Preview and local hosts accept per-request overrides so the eval script can compare prompt variants
+function config(env: Env, request: Request): MatchConfig {
+  const host = new URL(request.url).hostname
+  const tunable = host.endsWith('.workers.dev') || host === 'localhost' || host === '127.0.0.1'
+  const prompt = (tunable && request.headers.get('x-jev-prompt')) || env.JEV_PROMPT
+  const gloss = (tunable && request.headers.get('x-jev-gloss')) || env.JEV_USE_GLOSS
   return {
     jevModel: env.JEV_MODEL || 'typesafe/jev-1.14.0',
-    useGloss: env.JEV_USE_GLOSS !== 'false',
+    prompt: prompt === 'noul' ? 'noul' : 'score',
+    useGloss: gloss !== 'false',
     batchSize: Number(env.JEV_BATCH_SIZE) || 60,
     mock: env.JEV_MOCK === '1',
   }
@@ -88,9 +95,9 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
   if (quote.length < MIN_QUOTE) return fail(400, 'too_short', 'Type a few more words.')
   if (quote.length > MAX_QUOTE) return fail(400, 'too_long', `Keep it under ${MAX_QUOTE} characters.`)
 
-  const cfg = config(env)
+  const cfg = config(env, request)
   const cacheKey = new Request(
-    `https://jevitations.cache/${CACHE_VERSION}/${persona}/${cfg.jevModel}/${cfg.useGloss ? 'g' : 'n'}/${await sha256(quote.toLowerCase())}`,
+    `https://jevitations.cache/${CACHE_VERSION}/${persona}/${cfg.jevModel}/${cfg.prompt}${PROMPT_REVISION}/${cfg.useGloss ? 'g' : 'n'}/${await sha256(quote.toLowerCase())}`,
   )
   const cache = caches.default
   const hit = await cache.match(cacheKey)

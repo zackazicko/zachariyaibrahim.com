@@ -1,0 +1,44 @@
+# Runs scripts/eval-jev.mjs against the branch preview once Workers Builds has deployed it.
+# Only commits whose message contains "[eval]" or "[eval <variants>]" run it, since every
+# case spends one search of the daily cap.
+name: Eval matcher
+
+on:
+  push:
+    branches: [jevitations]
+
+permissions:
+  checks: read
+  contents: read
+
+jobs:
+  eval:
+    if: contains(github.event.head_commit.message, '[eval')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PREVIEW: https://jevitations-zachariyaibrahimdotcom.zacki917.workers.dev
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Wait for the preview deploy of this commit
+        run: |
+          for i in $(seq 1 60); do
+            state=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs" \
+              --jq '[.check_runs[] | select(.name | startswith("Workers Builds"))][0].conclusion // "pending"')
+            echo "Workers Builds: $state"
+            [ "$state" = "success" ] && sleep 20 && exit 0
+            [ "$state" = "failure" ] && exit 1
+            sleep 15
+          done
+          exit 1
+      - name: Run eval
+        env:
+          MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          variants=$(printf '%s' "$MESSAGE" | grep -o '\[eval[^]]*\]' | head -1 | sed -e 's/^\[eval//' -e 's/\]$//')
+          node scripts/eval-jev.mjs "$PREVIEW" $variants | tee eval.txt
+          { echo '```'; cat eval.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
