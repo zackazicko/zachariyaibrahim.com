@@ -126,8 +126,10 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
           })
           await cache.put(cacheKey, cached)
         }
-      } catch {
-        emit({ type: 'done', partial: true, inputTokens: 0, ranked: [] })
+      } catch (err) {
+        const error = (err instanceof Error ? err.message : String(err)).slice(0, 300)
+        console.error(`jev match failed: ${error}`)
+        emit({ type: 'done', partial: true, inputTokens: 0, ranked: [], error })
       } finally {
         await writer.close().catch(() => {})
       }

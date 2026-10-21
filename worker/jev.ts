@@ -28,16 +28,31 @@ export interface MatchConfig {
 
 export type MatchEvent =
   | { type: 'start'; batches: number; passages: number }
-  | { type: 'batch'; index: number; ok: boolean; scores: Record<string, number> }
-  | { type: 'done'; partial: boolean; inputTokens: number; ranked: { id: string; score: number }[] }
+  | { type: 'batch'; index: number; ok: boolean; scores: Record<string, number>; error?: string }
+  | { type: 'done'; partial: boolean; inputTokens: number; ranked: { id: string; score: number }[]; error?: string }
 
 // Jev and its drop-in peers take at most 64 questions per request, so batches stay under that.
 export const MAX_BATCH = 60
+// Jev's context window is 32k tokens per request. Archaic English runs about 3 characters a
+// token, so batches are packed by text length well under that, with room for per-question overhead.
+export const MAX_BATCH_CHARS = 36_000
 
 export function makeBatches(passages: Passage[], size: number): Passage[][] {
   const n = Math.max(1, Math.min(size, MAX_BATCH))
   const batches: Passage[][] = []
-  for (let i = 0; i < passages.length; i += n) batches.push(passages.slice(i, i + n))
+  let current: Passage[] = []
+  let chars = 0
+  for (const p of passages) {
+    const cost = p.text.length + p.principle.length + 600
+    if (current.length && (current.length >= n || chars + cost > MAX_BATCH_CHARS)) {
+      batches.push(current)
+      current = []
+      chars = 0
+    }
+    current.push(p)
+    chars += cost
+  }
+  if (current.length) batches.push(current)
   return batches
 }
 
@@ -82,6 +97,7 @@ async function runBatch(ai: Ai, cfg: MatchConfig, quote: string, batch: Passage[
     const v = res?.answers?.[questionKey(p.id)]?.noul
     if (typeof v === 'number') scores[p.id] = v
   }
+  if (!Object.keys(scores).length) throw new Error(`no answers in response: ${JSON.stringify(res).slice(0, 200)}`)
   return { scores, inputTokens: res?.usage?.input_tokens ?? 0 }
 }
 
@@ -98,6 +114,7 @@ export async function match(
   const all: Record<string, number> = {}
   let inputTokens = 0
   let failed = 0
+  let lastError: string | undefined
   await Promise.all(
     batches.map(async (batch, index) => {
       for (let attempt = 0; attempt < 2; attempt++) {
@@ -107,10 +124,13 @@ export async function match(
           inputTokens += r.inputTokens
           emit({ type: 'batch', index, ok: true, scores: r.scores })
           return
-        } catch {
+        } catch (err) {
+          const error = (err instanceof Error ? err.message : String(err)).slice(0, 300)
+          console.error(`jev batch ${index} attempt ${attempt + 1} failed: ${error}`)
           if (attempt === 1) {
             failed++
-            emit({ type: 'batch', index, ok: false, scores: {} })
+            lastError = error
+            emit({ type: 'batch', index, ok: false, scores: {}, error })
           }
         }
       }
@@ -120,7 +140,7 @@ export async function match(
   const ranked = Object.entries(all)
     .map(([id, score]) => ({ id, score }))
     .sort((a, b) => b.score - a.score)
-  const done = { type: 'done' as const, partial: failed > 0, inputTokens, ranked }
+  const done = { type: 'done' as const, partial: failed > 0, inputTokens, ranked, error: lastError }
   emit(done)
   return done
 }

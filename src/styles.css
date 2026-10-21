@@ -1794,6 +1794,19 @@ a {
   flex: none;
 }
 
+.jev-alert p {
+  max-width: 360px;
+}
+
+.jev-alert-detail {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--jev-mono);
+  font-size: 10px;
+  color: #666;
+  overflow-wrap: anywhere;
+}
+
 .jev-score {
   display: inline-flex;
   align-items: center;

@@ -22,7 +22,7 @@ interface Match {
 type MatchEvent =
   | { type: 'start'; batches: number; passages: number }
   | { type: 'batch'; index: number; ok: boolean }
-  | { type: 'done'; partial: boolean; ranked: { id: string; score: number }[] }
+  | { type: 'done'; partial: boolean; ranked: { id: string; score: number }[]; error?: string }
 
 const PLACEHOLDER = "I'd rather get caught with it than without it"
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII']
@@ -44,6 +44,16 @@ let corpusPromise: Promise<Map<string, Passage>> | null = null
 function loadCorpus() {
   corpusPromise ??= import('./meditations.json').then(m => new Map(m.default.passages.map(p => [p.id, p])))
   return corpusPromise
+}
+
+// Batches are grouped onto at most this many pips; a pip lights when all of its batches are in
+const MAX_PIPS = 7
+
+function groupPips(batches: boolean[]) {
+  const per = Math.ceil(batches.length / MAX_PIPS)
+  const pips: boolean[] = []
+  for (let i = 0; i < batches.length; i += per) pips.push(batches.slice(i, i + per).every(Boolean))
+  return pips
 }
 
 function scoreColor(s: number) {
@@ -136,7 +146,10 @@ function Featured({ match, rank, animate, error }: { match: Match | null; rank: 
             <rect x="11" y="6" width="2" height="8" fill="#000" />
             <rect x="11" y="16" width="2" height="2" fill="#000" />
           </svg>
-          <p>{error}</p>
+          <p>
+            {error.split('\n')[0]}
+            {error.includes('\n') && <small className="jev-alert-detail">{error.split('\n').slice(1).join(' ')}</small>}
+          </p>
         </div>
       </section>
     )
@@ -405,7 +418,7 @@ export function JevitationsContent() {
             const passage = corpus.get(r.id)
             return passage ? [{ passage, score: r.score }] : []
           })
-          if (!ranked.length) throw new Error(UNREACHABLE)
+          if (!ranked.length) throw new Error(e.error ? `${UNREACHABLE}\n${e.error}` : UNREACHABLE)
           setError(null)
           setMatches(ranked)
           setFeatured({ index: 0, animate: true })
@@ -461,7 +474,7 @@ export function JevitationsContent() {
             onChange={e => setQuote(e.target.value)}
           />
           <span className="jev-pips" aria-hidden="true">
-            {pips.map((on, i) => <i key={i} className={`jev-pip${on ? ' on' : ''}`} />)}
+            {groupPips(pips).map((on, i) => <i key={i} className={`jev-pip${on ? ' on' : ''}`} />)}
           </span>
         </label>
         <div className="jev-persona">
