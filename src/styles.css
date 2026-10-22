@@ -1725,6 +1725,11 @@ a {
   font: 14px/1.5 var(--jev-read);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  /* the desktop turns selection off; the passage can be selected and long-pressed to copy */
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+  cursor: text;
 }
 
 .jev-featured.open .jev-passage {
@@ -1771,7 +1776,8 @@ a {
   color: #666;
 }
 
-.jev-more {
+.jev-more,
+.jev-copy {
   margin-left: 4px;
   padding: 0;
   background: none;
@@ -1852,7 +1858,8 @@ a {
 
 .jev-dial:focus-visible,
 .jev-persona-btn:focus-visible,
-.jev-more:focus-visible {
+.jev-more:focus-visible,
+.jev-copy:focus-visible {
   outline: 2px solid #000;
   outline-offset: 1px;
 }

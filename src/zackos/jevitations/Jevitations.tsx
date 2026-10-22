@@ -98,6 +98,55 @@ function typeInto(nodes: { node: Node; full: string }[], n: number) {
   }
 }
 
+// The passage as it is copied: its full text and where it comes from
+function quoteText(p: Passage) {
+  return `${p.text}\n— Marcus Aurelius, Meditations ${ROMAN[p.book]}.${p.section}`
+}
+
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    // Older mobile browsers without the async clipboard: copy through a hidden field
+    const field = document.createElement('textarea')
+    field.value = text
+    field.setAttribute('readonly', '')
+    field.style.position = 'fixed'
+    field.style.opacity = '0'
+    document.body.append(field)
+    field.select()
+    const ok = document.execCommand('copy')
+    field.remove()
+    return ok
+  }
+}
+
+function CopyButton({ passage }: { passage: Passage }) {
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
+
+  useEffect(() => {
+    setState('idle')
+  }, [passage])
+
+  useEffect(() => {
+    if (state === 'idle') return
+    const id = window.setTimeout(() => setState('idle'), 1500)
+    return () => window.clearTimeout(id)
+  }, [state])
+
+  return (
+    <button
+      className="jev-copy"
+      type="button"
+      aria-live="polite"
+      onClick={async () => setState((await copyText(quoteText(passage))) ? 'copied' : 'failed')}
+    >
+      {state === 'copied' ? 'copied' : state === 'failed' ? 'copy failed' : 'copy'}
+    </button>
+  )
+}
+
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
@@ -201,6 +250,7 @@ function Featured({ match, rank, animate, error }: { match: Match | null; rank: 
               {expanded ? 'less' : 'more'}
             </button>
           )}
+          <CopyButton passage={match.passage} />
           <Score score={match.score} />
         </div>
       )}
