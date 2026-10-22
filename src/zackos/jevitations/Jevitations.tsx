@@ -42,6 +42,9 @@ const PERSONAS = [
   { id: 'epictetus', name: 'Epictetus', ready: false, beard: true },
 ]
 const UNREACHABLE = 'Marcus could not be reached. Try again.'
+const RESTING = 'Marcus is resting until tomorrow.'
+// Workers AI error 4006: the account's free daily allocation is used up until 00:00 UTC
+const OUT_OF_NEURONS = /\b4006\b|daily free allocation/i
 // Upstream error text shows only on preview and local hosts, never on the live site
 const SHOW_ERROR_DETAIL = /(^localhost$|^127\.|\.workers\.dev$)/.test(window.location.hostname)
 
@@ -502,7 +505,10 @@ export function JevitationsContent() {
             const passage = corpus.get(r.id)
             return passage ? [{ passage, score: r.score, highlight: e.highlights?.[r.id] ?? [] }] : []
           })
-          if (!ranked.length) throw new Error(e.error && SHOW_ERROR_DETAIL ? `${UNREACHABLE}\n${e.error}` : UNREACHABLE)
+          if (!ranked.length) {
+            const message = e.error && OUT_OF_NEURONS.test(e.error) ? RESTING : UNREACHABLE
+            throw new Error(e.error && SHOW_ERROR_DETAIL ? `${message}\n${e.error}` : message)
+          }
           setError(null)
           setMatches(ranked)
           setFeatured({ index: 0, animate: true })

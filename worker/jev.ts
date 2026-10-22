@@ -68,6 +68,10 @@ export const MAX_BATCH = 60
 // about 3 characters a token, so batches are packed by text length well under both.
 export const MAX_BATCH_CHARS = 36_000
 
+// Workers AI error 4006: the account's daily free allocation of neurons is used up. Retrying
+// cannot help until it resets at 00:00 UTC.
+export const OUT_OF_NEURONS = /\b4006\b|daily free allocation/i
+
 export function makeBatches(passages: Passage[], size: number): Passage[][] {
   const n = Math.max(1, Math.min(size, MAX_BATCH))
   const batches: Passage[][] = []
@@ -314,10 +318,11 @@ export async function match(
         } catch (err) {
           const error = (err instanceof Error ? err.message : String(err)).slice(0, 300)
           console.error(`jev batch ${index} attempt ${attempt + 1} failed: ${error}`)
-          if (attempt === 1) {
+          if (attempt === 1 || OUT_OF_NEURONS.test(error)) {
             failed++
             lastError = error
             emit({ type: 'batch', index, ok: false, scores: {}, error })
+            return
           }
         }
       }
