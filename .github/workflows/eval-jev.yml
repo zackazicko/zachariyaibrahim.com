@@ -1,6 +1,8 @@
 # Runs scripts/eval-jev.mjs against the branch preview once Workers Builds has deployed it.
 # It runs only when scripts/eval-variants.txt changes, since every case spends part of the
 # daily model budget. That file holds the arguments: variants, and --full for the whole book.
+# The output is also saved as a git note on the commit (refs/notes/jev-eval), so score dumps can
+# be fetched with git and re-analysed without new model calls.
 name: Eval matcher
 
 on:
@@ -10,7 +12,7 @@ on:
 
 permissions:
   checks: read
-  contents: read
+  contents: write
 
 jobs:
   eval:
@@ -39,3 +41,10 @@ jobs:
         run: |
           node scripts/eval-jev.mjs "$PREVIEW" $(grep -v '^#' scripts/eval-variants.txt) | tee eval.txt
           { echo '```'; cat eval.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Save the output as a git note
+        run: |
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin refs/notes/jev-eval:refs/notes/jev-eval || true
+          git notes --ref=jev-eval add -f -F eval.txt HEAD
+          git push origin refs/notes/jev-eval
