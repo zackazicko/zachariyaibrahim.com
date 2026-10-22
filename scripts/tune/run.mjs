@@ -28,6 +28,8 @@ for (const design of designs) {
     try {
       const r = await score(q.quote, design)
       console.log(JSON.stringify({ design, quote: q.quote, tokens: r.tokens, errors: r.errors, scores: r.scores }))
+      // Workers AI refuses everything once the account's daily allowance is spent
+      if (!Object.keys(r.scores).length && r.errors.some(e => e.startsWith('4006'))) process.exit(0)
     } catch (err) {
       console.log(JSON.stringify({ design, quote: q.quote, fatal: String(err) }))
       if (String(err).includes('daily_cap')) process.exit(0)
