@@ -5,7 +5,18 @@
    ============================================================================= */
 
 import meditations from '../src/zackos/jevitations/meditations.json'
-import { match, PROMPT_REVISION, PROMPT_STYLES, type Corpus, type MatchConfig, type MatchEvent, type PromptStyle } from './jev'
+import {
+  HIGHLIGHT_PASSAGES,
+  match,
+  PROMPT_REVISION,
+  PROMPT_STYLES,
+  RANK_BY,
+  type Corpus,
+  type MatchConfig,
+  type MatchEvent,
+  type PromptStyle,
+  type RankBy,
+} from './jev'
 
 interface Env {
   ASSETS: Fetcher
@@ -15,21 +26,25 @@ interface Env {
   JEV_MODEL?: string
   JEV_PROMPT?: string
   JEV_USE_GLOSS?: string
+  JEV_RANK?: string
   JEV_BATCH_SIZE?: string
   JEV_DAILY_TOKENS?: string
   JEV_MOCK?: string
 }
 
 const CORPORA: Record<string, Corpus> = {
-  'marcus-aurelius': meditations as Corpus,
+  'marcus-aurelius': meditations satisfies Corpus,
 }
 
 const MIN_QUOTE = 3
 const MAX_QUOTE = 400
 const CACHE_TTL = 60 * 60 * 24 * 30
-const CACHE_VERSION = 'v1'
+// v2: George Long's translation, sentence highlights
+const CACHE_VERSION = 'v2'
 // Rough input tokens per passage, measured on the point scale, used to check the budget up front
 const TOKENS_PER_PASSAGE = 390
+// The highlight calls read each of the top passages twice, whole and sentence by sentence
+const HIGHLIGHT_TOKENS = 1200
 
 function json(status: number, body: unknown, headers: HeadersInit = {}) {
   return new Response(JSON.stringify(body), {
@@ -61,11 +76,14 @@ function config(env: Env, request: Request): MatchConfig {
   const tunable = isTunable(request)
   const prompt = (tunable && request.headers.get('x-jev-prompt')) || env.JEV_PROMPT
   const gloss = (tunable && request.headers.get('x-jev-gloss')) || env.JEV_USE_GLOSS
+  const rank = (tunable && request.headers.get('x-jev-rank')) || env.JEV_RANK
   return {
     jevModel: env.JEV_MODEL || 'typesafe/jev-1.14.0',
     prompt: PROMPT_STYLES.includes(prompt as PromptStyle) ? (prompt as PromptStyle) : 'point',
     useGloss: gloss !== 'false',
+    rank: RANK_BY.includes(rank as RankBy) ? (rank as RankBy) : 'mean',
     batchSize: Number(env.JEV_BATCH_SIZE) || 60,
+    levels: tunable && request.headers.get('x-jev-levels') === '1',
     mock: env.JEV_MOCK === '1',
   }
 }
@@ -109,10 +127,10 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
 
   const cfg = config(env, request)
   const cacheKey = new Request(
-    `https://jevitations.cache/${CACHE_VERSION}/${persona}/${cfg.jevModel}/${cfg.prompt}${PROMPT_REVISION}/${cfg.useGloss ? 'g' : 'n'}/${await sha256(quote.toLowerCase())}`,
+    `https://jevitations.cache/${CACHE_VERSION}/${persona}/${cfg.jevModel}/${cfg.prompt}${PROMPT_REVISION}/${cfg.useGloss ? 'g' : 'n'}/${cfg.rank}/${await sha256(quote.toLowerCase())}`,
   )
   const cache = caches.default
-  const hit = subset ? undefined : await cache.match(cacheKey)
+  const hit = subset || cfg.levels ? undefined : await cache.match(cacheKey)
   if (hit) return new Response(hit.body, { headers: { ...STREAM_HEADERS, 'x-jev-cache': 'hit' } })
 
   const ip = request.headers.get('cf-connecting-ip') || 'unknown'
@@ -124,7 +142,7 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
   const day = new Date().toISOString().slice(0, 10)
   const budgetKey = `tokens:${day}`
   const budget = Number(env.JEV_DAILY_TOKENS) || 2_800_000
-  const estimate = corpus.passages.length * TOKENS_PER_PASSAGE
+  const estimate = corpus.passages.length * TOKENS_PER_PASSAGE + HIGHLIGHT_PASSAGES * HIGHLIGHT_TOKENS
   const used = Number(await env.JEV_KV.get(budgetKey)) || 0
   if (used + estimate > budget) return fail(429, 'daily_cap', 'Marcus is resting until tomorrow.')
   const spend = (tokens: number) =>
@@ -144,7 +162,7 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
       try {
         const done = await match(env.AI, cfg, corpus, quote, emit)
         await spend(done.inputTokens || estimate)
-        if (!subset && !done.partial && done.ranked.length) {
+        if (!subset && !cfg.levels && !done.partial && done.ranked.length) {
           const cached = new Response(ndjson(events), {
             headers: { ...STREAM_HEADERS, 'cache-control': `public, max-age=${CACHE_TTL}` },
           })

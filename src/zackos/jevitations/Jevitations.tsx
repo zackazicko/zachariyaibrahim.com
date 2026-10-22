@@ -4,25 +4,35 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
    JEVITATIONS
    Type a quote, Jev scores every passage of the Meditations by shared idea,
    and the ranked passages spin on a looping drum. Matching runs in the site
-   worker at /api/jev/match and streams one event per batch.
+   worker at /api/jev/match and streams one event per batch. The sentence of a
+   top passage that best says the quote's idea is set in bold.
    ============================================================================= */
 
 interface Passage {
   id: string
   book: number
-  section: string
+  section: number
+  sentences: string[]
   text: string
 }
 
 interface Match {
   passage: Passage
   score: number
+  // indices into passage.sentences to set in bold
+  highlight: number[]
 }
 
 type MatchEvent =
   | { type: 'start'; batches: number; passages: number }
   | { type: 'batch'; index: number; ok: boolean }
-  | { type: 'done'; partial: boolean; ranked: { id: string; score: number }[]; error?: string }
+  | {
+      type: 'done'
+      partial: boolean
+      ranked: { id: string; score: number }[]
+      highlights?: Record<string, number[]>
+      error?: string
+    }
 
 const PLACEHOLDER = "I'd rather get caught with it than without it"
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII']
@@ -44,7 +54,9 @@ const WHEEL_STEP = 36
 
 let corpusPromise: Promise<Map<string, Passage>> | null = null
 function loadCorpus() {
-  corpusPromise ??= import('./meditations.json').then(m => new Map(m.default.passages.map(p => [p.id, p])))
+  corpusPromise ??= import('./meditations.json').then(
+    m => new Map(m.default.passages.map(p => [p.id, { ...p, text: p.sentences.join(' ') }])),
+  )
   return corpusPromise
 }
 
@@ -64,6 +76,26 @@ function scoreColor(s: number) {
 
 function cite(p: Passage) {
   return `Book ${ROMAN[p.book]} · ${p.section}`
+}
+
+// One node per sentence, bold ones as <strong>, with the spaces between them as text
+function passageNodes(match: Match) {
+  const bold = new Set(match.highlight)
+  const nodes: { node: Node; full: string }[] = []
+  match.passage.sentences.forEach((sentence, i) => {
+    if (i) nodes.push({ node: document.createTextNode(''), full: ' ' })
+    nodes.push({ node: bold.has(i) ? document.createElement('strong') : document.createTextNode(''), full: sentence })
+  })
+  return nodes
+}
+
+// Shows the first n characters across the nodes
+function typeInto(nodes: { node: Node; full: string }[], n: number) {
+  let left = n
+  for (const { node, full } of nodes) {
+    node.textContent = full.slice(0, Math.max(0, left))
+    left -= full.length
+  }
 }
 
 function prefersReducedMotion() {
@@ -112,25 +144,25 @@ function Featured({ match, rank, animate, error }: { match: Match | null; rank: 
   useLayoutEffect(() => {
     const el = textRef.current
     if (!el || !match) return
-    const text = match.passage.text
+    const length = match.passage.text.length
+    const nodes = passageNodes(match)
     const measure = () => setClips(el.scrollHeight > el.clientHeight + 1)
     if (!animate || prefersReducedMotion()) {
-      el.textContent = text
+      typeInto(nodes, length)
+      el.replaceChildren(...nodes.map(n => n.node))
       measure()
       return
     }
-    el.textContent = ''
-    const out = document.createElement('span')
     const caret = document.createElement('span')
     caret.className = 'jev-caret'
     caret.textContent = '|'
-    el.append(out, caret)
-    const step = Math.max(2, Math.ceil(text.length / 180))
+    el.replaceChildren(...nodes.map(n => n.node), caret)
+    const step = Math.max(2, Math.ceil(length / 180))
     let i = 0
     const id = window.setInterval(() => {
       i += step
-      out.textContent = text.slice(0, i)
-      if (i >= text.length) {
+      typeInto(nodes, i)
+      if (i >= length) {
         window.clearInterval(id)
         caret.remove()
         measure()
@@ -418,7 +450,7 @@ export function JevitationsContent() {
         } else if (e.type === 'done') {
           const ranked = e.ranked.flatMap(r => {
             const passage = corpus.get(r.id)
-            return passage ? [{ passage, score: r.score }] : []
+            return passage ? [{ passage, score: r.score, highlight: e.highlights?.[r.id] ?? [] }] : []
           })
           if (!ranked.length) throw new Error(e.error && SHOW_ERROR_DETAIL ? `${UNREACHABLE}\n${e.error}` : UNREACHABLE)
           setError(null)

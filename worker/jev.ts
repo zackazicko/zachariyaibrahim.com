@@ -2,16 +2,21 @@
    JEVITATIONS MATCHING
    One decision model (Jev, or its drop-in peer Clef) is the only model called
    per search. It reads the quote as state and scores every passage on how
-   closely it makes the quote's point. The plain-English glosses are written
-   ahead of time.
+   closely it makes the quote's point, then scores each sentence of the top
+   passages so the app can bold the one that says it. The plain-English glosses
+   are written ahead of time.
    ============================================================================= */
 
 export interface Passage {
   id: string
   book: number
-  section: string
-  text: string
+  section: number
+  sentences: string[]
   principle: string
+}
+
+export function passageText(p: Passage) {
+  return p.sentences.join(' ')
 }
 
 export interface Corpus {
@@ -24,14 +29,38 @@ export interface MatchConfig {
   jevModel: string
   prompt: PromptStyle
   useGloss: boolean
+  rank: RankBy
   batchSize: number
+  // preview only: batch events also carry each passage's probability per rubric level
+  levels: boolean
   mock: boolean
 }
 
+// mean: the probability-weighted rubric level. top: the probability of the highest level alone.
+export const RANK_BY = ['mean', 'top'] as const
+export type RankBy = (typeof RANK_BY)[number]
+
 export type MatchEvent =
   | { type: 'start'; batches: number; passages: number }
-  | { type: 'batch'; index: number; ok: boolean; scores: Record<string, number>; error?: string }
-  | { type: 'done'; partial: boolean; inputTokens: number; ranked: { id: string; score: number }[]; error?: string }
+  | {
+      type: 'batch'
+      index: number
+      ok: boolean
+      scores: Record<string, number>
+      // preview only: probabilities per rubric level, and one raw answer to show its shape
+      levels?: Record<string, number[]>
+      sample?: unknown
+      error?: string
+    }
+  | {
+      type: 'done'
+      partial: boolean
+      inputTokens: number
+      ranked: { id: string; score: number }[]
+      // sentence indices to bold in each of the top passages
+      highlights?: Record<string, number[]>
+      error?: string
+    }
 
 // Jev and its drop-in peers take at most 64 questions per request, so batches stay under that.
 export const MAX_BATCH = 60
@@ -45,7 +74,7 @@ export function makeBatches(passages: Passage[], size: number): Passage[][] {
   let current: Passage[] = []
   let chars = 0
   for (const p of passages) {
-    const cost = p.text.length + p.principle.length + 600
+    const cost = passageText(p).length + p.principle.length + 600
     if (current.length && (current.length >= n || chars + cost > MAX_BATCH_CHARS)) {
       batches.push(current)
       current = []
@@ -84,6 +113,14 @@ const POINT_RUBRIC = [
   'Same point: says what the quote means, in its own terms',
 ]
 
+// agree: asks from the point of view of the person who typed the quote
+const AGREE_RUBRIC = [
+  'No: it tells them something else',
+  'Only on the surface: it shares a topic, word or image, not the message',
+  'Partly: it backs up or overlaps with their message',
+  'Yes: it tells them the same thing',
+]
+
 // guided: the point scale, with worked examples of reading a saying for its point. The examples
 // are deliberately far from the eval quotes so they teach the reading, not the answers.
 const READING_EXAMPLES = [
@@ -93,9 +130,16 @@ const READING_EXAMPLES = [
   '"Sleep on it" is advice to wait until you are calm before deciding, not about sleep.',
 ]
 
-export const PROMPT_STYLES = ['noul', 'score', 'point', 'guided'] as const
+export const PROMPT_STYLES = ['noul', 'score', 'point', 'guided', 'agree'] as const
 export type PromptStyle = (typeof PROMPT_STYLES)[number]
-export const PROMPT_REVISION = 2
+export const PROMPT_REVISION = 3
+
+const RUBRICS: Record<Exclude<PromptStyle, 'noul'>, string[]> = {
+  score: SCORE_RUBRIC,
+  point: POINT_RUBRIC,
+  guided: POINT_RUBRIC,
+  agree: AGREE_RUBRIC,
+}
 
 export function buildState(quote: string, style: PromptStyle) {
   if (style === 'noul') return { quote }
@@ -128,45 +172,125 @@ export function buildQuestions(batch: Passage[], useGloss: boolean, style: Promp
       questions[questionKey(p.id)] = {
         type: 'noul',
         instructions:
-          `Passage from Marcus Aurelius's Meditations (1634 translation, archaic English):\n"${p.text}"${gloss}\n\n` +
+          `Passage from Marcus Aurelius's Meditations (George Long's 1862 translation):\n"${passageText(p)}"${gloss}\n\n` +
           `${READING_GUIDE} Does this passage share that core idea? Judge the idea, not the words.`,
         criteria: MATCH_CRITERIA,
       }
       continue
     }
     const gloss = useGloss ? `\nIn plain English: ${p.principle}` : ''
+    const ask =
+      style === 'agree'
+        ? 'Would the person who typed the quote agree this passage tells them the same thing? Judge meaning, not shared words.'
+        : 'How closely does this passage express the idea behind the quote? Judge meaning, not shared words.'
     questions[questionKey(p.id)] = {
       type: 'score',
-      instructions:
-        `Meditations passage (1634 English): "${p.text}"${gloss}\n` +
-        'How closely does this passage express the idea behind the quote? Judge meaning, not shared words.',
-      criteria: style === 'score' ? SCORE_RUBRIC : POINT_RUBRIC,
+      instructions: `Meditations passage (George Long's translation): "${passageText(p)}"${gloss}\n${ask}`,
+      criteria: RUBRICS[style],
     }
   }
   return questions
 }
 
-interface JevAnswer { noul?: number; score?: number }
+type JevAnswer = Record<string, unknown> & { noul?: number; score?: number }
 interface JevResponse { answers?: Record<string, JevAnswer>; usage?: { input_tokens?: number } }
+
+async function ask(ai: Ai, model: string, state: unknown, questions: Record<string, unknown>) {
+  // Clef speaks the same System One API as Jev but also wants its short name in the body
+  const clef = model.match(/^@cf\/cloudflare\/(clef(?:-flash)?)$/)?.[1]
+  return (await ai.run(model as keyof AiModels, {
+    ...(clef ? { model: clef } : {}),
+    state,
+    questions,
+  } as never)) as JevResponse
+}
+
+// A score answer carries the probability of each rubric level next to the weighted score. The
+// field name is not documented, so take the first list (or level-keyed map) of n probabilities.
+export function levelProbs(a: JevAnswer | undefined, n: number): number[] | null {
+  if (!a) return null
+  for (const [key, v] of Object.entries(a)) {
+    if (key === 'score' || key === 'noul') continue
+    const list = Array.isArray(v) ? v : v && typeof v === 'object' ? Object.values(v) : null
+    if (list?.length === n && list.every(x => typeof x === 'number')) return list as number[]
+  }
+  return null
+}
+
+const round = (v: number) => Math.round(v * 1000) / 1000
+
+// Scales an answer to 0..1: noul is already a probability, and a score is either its expected
+// level over the top level or, ranking by top, the probability of the top level
+function answerValue(a: JevAnswer | undefined, levels: number, rank: RankBy, noul: boolean) {
+  if (noul) return a?.noul
+  if (rank === 'top') return levelProbs(a, levels)?.[levels - 1] ?? (a?.score ?? NaN) / (levels - 1)
+  return (a?.score ?? NaN) / (levels - 1)
+}
 
 async function runBatch(ai: Ai, cfg: MatchConfig, quote: string, batch: Passage[]) {
   if (cfg.mock) return mockJev(quote, batch)
-  // Clef speaks the same System One API as Jev but also wants its short name in the body
-  const clef = cfg.jevModel.match(/^@cf\/cloudflare\/(clef(?:-flash)?)$/)?.[1]
-  const res = (await ai.run(cfg.jevModel as keyof AiModels, {
-    ...(clef ? { model: clef } : {}),
-    state: buildState(quote, cfg.prompt),
-    questions: buildQuestions(batch, cfg.useGloss, cfg.prompt),
-  } as never)) as JevResponse
+  const res = await ask(ai, cfg.jevModel, buildState(quote, cfg.prompt), buildQuestions(batch, cfg.useGloss, cfg.prompt))
+  const n = cfg.prompt === 'noul' ? 2 : RUBRICS[cfg.prompt].length
   const scores: Record<string, number> = {}
+  const levels: Record<string, number[]> = {}
   for (const p of batch) {
     const a = res?.answers?.[questionKey(p.id)]
-    // Scores come back as an expected rubric level; scale them to 0..1 like noul probabilities
-    const v = cfg.prompt === 'noul' ? a?.noul : (a?.score ?? NaN) / (SCORE_RUBRIC.length - 1)
-    if (typeof v === 'number' && Number.isFinite(v)) scores[p.id] = Math.round(v * 1000) / 1000
+    const v = answerValue(a, n, cfg.rank, cfg.prompt === 'noul')
+    if (typeof v === 'number' && Number.isFinite(v)) scores[p.id] = round(v)
+    const probs = cfg.levels && levelProbs(a, n)
+    if (probs) levels[p.id] = probs.map(round)
   }
   if (!Object.keys(scores).length) throw new Error(`no answers in response: ${JSON.stringify(res).slice(0, 200)}`)
-  return { scores, inputTokens: res?.usage?.input_tokens ?? 0 }
+  const sample = cfg.levels ? res?.answers?.[questionKey(batch[0].id)] : undefined
+  return { scores, levels: cfg.levels ? levels : undefined, sample, inputTokens: res?.usage?.input_tokens ?? 0 }
+}
+
+// The sentences of each top passage get their own small call, so the app can bold the one
+// that says what the quote means
+export const HIGHLIGHT_PASSAGES = 3
+const SENTENCE_RUBRIC = [
+  'Does not carry the idea',
+  'Sets up or gives background for the idea',
+  'Supports or illustrates the idea',
+  'States the idea most directly',
+]
+// A second sentence is bolded only when it scores nearly as well as the best one
+const SECOND_SENTENCE_GAP = 0.1
+
+export function buildHighlightState(quote: string, p: Passage) {
+  return (
+    buildState(quote, 'point') +
+    `\n\nThis passage from the Meditations (George Long's translation) matches that idea:\n"${passageText(p)}"\n` +
+    'Each question is one sentence of the passage.'
+  )
+}
+
+export function buildHighlightQuestions(p: Passage) {
+  const questions: Record<string, unknown> = {}
+  p.sentences.forEach((s, i) => {
+    questions[`s_${i}`] = {
+      type: 'score',
+      instructions: `Sentence ${i + 1}: "${s}"\nHow directly does this sentence say what the quote means?`,
+      criteria: SENTENCE_RUBRIC,
+    }
+  })
+  return questions
+}
+
+export function pickSentences(values: number[]) {
+  const order = values.map((v, i) => [v, i]).filter(([v]) => Number.isFinite(v)).sort((a, b) => b[0] - a[0])
+  if (!order.length) return []
+  const picked = [order[0][1]]
+  if (order[1] && order[1][0] >= order[0][0] - SECOND_SENTENCE_GAP) picked.push(order[1][1])
+  return picked.sort((a, b) => a - b)
+}
+
+async function highlight(ai: Ai, cfg: MatchConfig, quote: string, p: Passage) {
+  if (p.sentences.length < 2) return { sentences: [0], inputTokens: 0 }
+  if (cfg.mock) return { sentences: [hash(quote + p.id) % p.sentences.length], inputTokens: 0 }
+  const res = await ask(ai, cfg.jevModel, buildHighlightState(quote, p), buildHighlightQuestions(p))
+  const values = p.sentences.map((_, i) => res?.answers?.[`s_${i}`]?.score ?? NaN)
+  return { sentences: pickSentences(values), inputTokens: res?.usage?.input_tokens ?? 0 }
 }
 
 export async function match(
@@ -190,7 +314,7 @@ export async function match(
           const r = await runBatch(ai, cfg, quote, batch)
           Object.assign(all, r.scores)
           inputTokens += r.inputTokens
-          emit({ type: 'batch', index, ok: true, scores: r.scores })
+          emit({ type: 'batch', index, ok: true, scores: r.scores, ...(r.levels ? { levels: r.levels, sample: r.sample } : {}) })
           return
         } catch (err) {
           const error = (err instanceof Error ? err.message : String(err)).slice(0, 300)
@@ -208,18 +332,36 @@ export async function match(
   const ranked = Object.entries(all)
     .map(([id, score]) => ({ id, score }))
     .sort((a, b) => b.score - a.score)
-  const done = { type: 'done' as const, partial: failed > 0, inputTokens, ranked, error: lastError }
+
+  // A failed highlight only costs the bold sentence, so it never marks the result partial
+  const byId = new Map(corpus.passages.map(p => [p.id, p]))
+  const highlights: Record<string, number[]> = {}
+  await Promise.all(
+    ranked.slice(0, HIGHLIGHT_PASSAGES).map(async ({ id }) => {
+      try {
+        const h = await highlight(ai, cfg, quote, byId.get(id)!)
+        inputTokens += h.inputTokens
+        if (h.sentences.length) highlights[id] = h.sentences
+      } catch (err) {
+        console.error(`jev highlight ${id} failed: ${(err instanceof Error ? err.message : String(err)).slice(0, 300)}`)
+      }
+    }),
+  )
+
+  const done = { type: 'done' as const, partial: failed > 0, inputTokens, ranked, highlights, error: lastError }
   emit(done)
   return done
+}
+
+function hash(text: string) {
+  let h = 2166136261
+  for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619)
+  return h >>> 0
 }
 
 // Deterministic stand-in for local runs without Workers AI: stable pseudo-scores per quote and passage.
 function mockJev(quote: string, batch: Passage[]) {
   const scores: Record<string, number> = {}
-  for (const p of batch) {
-    let h = 2166136261
-    for (const ch of quote + p.id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619)
-    scores[p.id] = Math.round(((h >>> 0) % 1000) ** 2 / 1000) / 1000
-  }
-  return { scores, inputTokens: 0 }
+  for (const p of batch) scores[p.id] = Math.round((hash(quote + p.id) % 1000) ** 2 / 1000) / 1000
+  return { scores, levels: undefined, sample: undefined, inputTokens: 0 }
 }

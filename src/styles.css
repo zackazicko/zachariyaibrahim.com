@@ -1586,6 +1586,14 @@ a {
   outline: none;
 }
 
+/* iOS zooms the page into any focused field set under 16px, so touch screens get 16px */
+@media (pointer: coarse) {
+  .jev-sbox input,
+  .zackos-notepad-textarea {
+    font-size: 16px;
+  }
+}
+
 .jev-sbox input::placeholder {
   color: var(--jev-gray);
 }
