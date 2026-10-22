@@ -1,2 +1,2 @@
 # Edit to run the eval workflow against the branch preview
---dump point:gloss guided:gloss
+--full --dump --calibrate point:gloss

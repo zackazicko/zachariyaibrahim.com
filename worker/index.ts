@@ -28,8 +28,8 @@ const MIN_QUOTE = 3
 const MAX_QUOTE = 400
 const CACHE_TTL = 60 * 60 * 24 * 30
 const CACHE_VERSION = 'v1'
-// Rough input tokens per passage, measured on a full search, used to check the budget up front
-const TOKENS_PER_PASSAGE = 345
+// Rough input tokens per passage, measured on the point scale, used to check the budget up front
+const TOKENS_PER_PASSAGE = 390
 
 function json(status: number, body: unknown, headers: HeadersInit = {}) {
   return new Response(JSON.stringify(body), {
@@ -119,7 +119,8 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
   const { success } = await env.MATCH_LIMITER.limit({ key: ip })
   if (!success) return fail(429, 'rate_limited', 'Marcus needs a moment. Try again in a minute.', { 'retry-after': '60' })
 
-  // The daily budget is counted in model input tokens, the unit Workers AI bills in
+  // The daily budget is counted in model input tokens, the unit Workers AI bills in. The default
+  // stays inside the free 10k neurons; wrangler.json sets 52M, about $2 a day on Clef-flash.
   const day = new Date().toISOString().slice(0, 10)
   const budgetKey = `tokens:${day}`
   const budget = Number(env.JEV_DAILY_TOKENS) || 2_800_000

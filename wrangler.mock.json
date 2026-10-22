@@ -32,6 +32,6 @@
     "JEV_BATCH_SIZE": "60",
     "JEV_MOCK": "1",
     "JEV_PROMPT": "point",
-    "JEV_DAILY_TOKENS": "2800000"
+    "JEV_DAILY_TOKENS": "52000000"
   }
 }
