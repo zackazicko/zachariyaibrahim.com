@@ -1,2 +1,2 @@
 # Edit to run scripts/tune/run.mjs against this branch's preview: <split> <design> [design...]
-dev point-full+gloss point-gloss situation-full+gloss situation-gloss
+dev  point-full+gloss point-gloss situation-full+gloss situation-gloss
