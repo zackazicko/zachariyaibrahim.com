@@ -13,7 +13,15 @@ for (const file of process.argv.slice(2)) {
     if (!line.trim()) continue
     const r = JSON.parse(line)
     if (!r.scores || !labels.has(r.quote)) continue
-    ;(runs[r.design] ??= {})[r.quote] = r.scores
+    // scores hold each rubric level's probability; rank by the expected level, and separately
+    // by the chance of the top level
+    const expected = {}, top = {}
+    for (const [id, probs] of Object.entries(r.scores)) {
+      expected[id] = probs.reduce((s, p, i) => s + p * i, 0) / (probs.length - 1)
+      top[id] = probs.at(-1) + 1e-3 * expected[id]
+    }
+    ;(runs[r.design] ??= {})[r.quote] = expected
+    ;(runs[`${r.design}~ptop`] ??= {})[r.quote] = top
   }
 }
 
@@ -69,11 +77,11 @@ for (const [d, byQuote] of Object.entries(runs)) {
 }
 const names = Object.keys(runs)
 for (const a of names) for (const b of names) {
-  if (a === b || !/gloss$/.test(a) || /gloss$/.test(b)) continue
+  if (a === b || !/-gloss$/.test(a) || /-gloss/.test(b) || /~/.test(b)) continue
   for (const k of [12, 25, 50]) report(`shortlist ${a}>${b} K=${k}`, shortlist(runs[a], runs[b], k))
 }
 // how deep the shortlist must go to keep a right passage
-for (const a of names.filter(n => /-gloss$/.test(n))) {
+for (const a of names.filter(n => /-gloss(~ptop)?$/.test(n))) {
   const ranks = Object.keys(runs[a]).map(q => rankOf(runs[a][q], labels.get(q).best)).sort((x, y) => x - y)
   const at = p => ranks[Math.min(ranks.length - 1, Math.floor(p * ranks.length))]
   console.log(`${a}: rank of first right passage  median ${at(0.5)}  p80 ${at(0.8)}  p90 ${at(0.9)}  max ${ranks.at(-1)}`)

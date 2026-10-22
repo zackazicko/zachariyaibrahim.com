@@ -109,11 +109,16 @@ async function runBatch(ai: Ai, d: Design, quote: string, batch: Passage[]) {
     model: 'clef-flash',
     state: d.state(quote),
     questions,
-  } as never)) as { answers?: Record<string, { score?: number }>; usage?: { input_tokens?: number } }
-  const scores: Record<string, number> = {}
+  } as never)) as {
+    answers?: Record<string, { score?: number; probabilities?: Record<string, number> }>
+    usage?: { input_tokens?: number }
+  }
+  // Each passage keeps the probability of every rubric level, so other rankings (such as the
+  // chance of the top level) can be tried offline; the expected level is their weighted sum.
+  const scores: Record<string, number[]> = {}
   for (const p of batch) {
-    const s = res?.answers?.[key(p.id)]?.score
-    if (typeof s === 'number' && Number.isFinite(s)) scores[p.id] = Math.round((s / (d.rubric.length - 1)) * 1000) / 1000
+    const probs = res?.answers?.[key(p.id)]?.probabilities
+    if (probs) scores[p.id] = d.rubric.map((_, i) => Math.round((probs[String(i)] ?? 0) * 1000) / 1000)
   }
   if (!Object.keys(scores).length) throw new Error(`no answers: ${JSON.stringify(res).slice(0, 200)}`)
   return { scores, tokens: res?.usage?.input_tokens ?? 0 }
@@ -142,7 +147,7 @@ export async function handleTune(request: Request, env: TuneEnv) {
   const used = Number(await env.JEV_KV.get(budgetKey)) || 0
   if (used + estimate > budget) return json(429, { error: 'daily_cap', used })
 
-  const scores: Record<string, number> = {}
+  const scores: Record<string, number[]> = {}
   let tokens = 0
   const errors: string[] = []
   await Promise.all(
