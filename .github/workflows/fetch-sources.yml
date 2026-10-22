@@ -1,0 +1,35 @@
+# Temporary: downloads candidate texts of George Long's Meditations translation, which the
+# development container cannot reach, and stores each one as a git note on this commit.
+name: Fetch Meditations sources
+
+on:
+  push:
+    branches: [jevitations]
+    paths: [.github/workflows/fetch-sources.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and save as notes
+        run: |
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          fetch() {
+            name=$1; url=$2
+            if curl -fsSL --retry 3 -o "$name.txt" "$url"; then
+              echo "== $name: $(wc -c < "$name.txt") bytes from $url"
+              head -40 "$name.txt"
+              git notes --ref="src-$name" add -f -F "$name.txt" HEAD
+              git push -f origin "refs/notes/src-$name"
+            else
+              echo "== $name: download failed from $url"
+            fi
+          }
+          fetch pg15877 https://www.gutenberg.org/cache/epub/15877/pg15877.txt
+          fetch pg55317 https://www.gutenberg.org/cache/epub/55317/pg55317.txt
+          fetch mit http://classics.mit.edu/Antoninus/meditations.mb.txt
