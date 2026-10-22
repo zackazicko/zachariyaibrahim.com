@@ -1,0 +1,2 @@
+# Edit to run the eval workflow against the branch preview
+noul:gloss score:gloss point:gloss point:plain
