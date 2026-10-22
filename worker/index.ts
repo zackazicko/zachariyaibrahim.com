@@ -5,6 +5,7 @@
    ============================================================================= */
 
 import meditations from '../src/zackos/jevitations/meditations.json'
+import { handleTune } from './tune/tune'
 import { match, PROMPT_REVISION, PROMPT_STYLES, type Corpus, type MatchConfig, type MatchEvent, type PromptStyle } from './jev'
 
 interface Env {
@@ -168,6 +169,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url)
     if (url.pathname === '/api/jev/match') return handleMatch(request, env, ctx)
+    if (url.pathname === '/api/jev/tune' && isTunable(request)) return handleTune(request, env)
     if (url.pathname.startsWith('/api/')) return fail(404, 'not_found', 'No such endpoint.')
     return env.ASSETS.fetch(request)
   },

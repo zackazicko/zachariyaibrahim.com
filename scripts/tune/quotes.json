@@ -1,0 +1,1798 @@
+[
+ {
+  "quote": "fuck it we ball",
+  "means": "Stop deliberating about it and act.",
+  "best": [
+   "10.16",
+   "8.22",
+   "8.47"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "just do it",
+  "means": "Stop hesitating and act.",
+  "best": [
+   "10.16",
+   "8.47",
+   "8.22"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "talk is cheap",
+  "means": "What you do counts, not what you say.",
+  "best": [
+   "10.16",
+   "11.15"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "actions speak louder than words",
+  "means": "Character shows in deeds, not declarations.",
+  "best": [
+   "11.15",
+   "10.16"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "practice what you preach",
+  "means": "Live by the rules before you tell others to.",
+  "best": [
+   "11.29",
+   "10.16"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "waste no more time arguing what a good man should be, be one",
+  "means": "Stop discussing goodness and practise it.",
+  "best": [
+   "10.16"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "stop reading self-help books and just live",
+  "means": "Quit studying how to live and start living.",
+  "best": [
+   "10.16",
+   "2.2",
+   "2.3"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "touch grass",
+  "means": "Get out of your head and back into real life.",
+  "best": [
+   "6.31",
+   "7.47"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "stay in your lane",
+  "means": "Mind your own conduct, not other people's.",
+  "best": [
+   "4.18",
+   "3.4",
+   "7.55"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "mind your own business",
+  "means": "Attend to your own affairs, not others'.",
+  "best": [
+   "4.18",
+   "3.4",
+   "7.55",
+   "2.13"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "not my circus, not my monkeys",
+  "means": "Other people's messes are not my concern; I do my part.",
+  "best": [
+   "6.22",
+   "4.18",
+   "5.25"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "haters gonna hate",
+  "means": "Critics will criticise whatever you do; it is their nature.",
+  "best": [
+   "8.4",
+   "9.42",
+   "5.17",
+   "12.16",
+   "5.3"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "let him cook",
+  "means": "Give someone room before deciding they are wrong.",
+  "best": [
+   "9.38",
+   "12.16",
+   "11.18"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "they're living rent free in your head",
+  "means": "You keep wasting thought on someone who wronged or annoys you.",
+  "best": [
+   "3.4",
+   "7.29",
+   "9.20"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "yolo",
+  "means": "Life is short, so live now.",
+  "best": [
+   "4.17",
+   "7.69",
+   "2.5",
+   "2.11"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "life is short",
+  "means": "Your time is limited, so use it well.",
+  "best": [
+   "4.17",
+   "4.26",
+   "6.30",
+   "3.10"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "memento mori",
+  "means": "Remember you will die, and let that shape how you live.",
+  "best": [
+   "4.17",
+   "2.11",
+   "4.48",
+   "7.69"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "carpe diem",
+  "means": "Act today instead of deferring.",
+  "best": [
+   "2.4",
+   "3.14",
+   "8.44",
+   "4.17"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "why put off till tomorrow what you can do today",
+  "means": "Stop postponing what you should do now.",
+  "best": [
+   "8.22",
+   "2.4",
+   "3.14"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "i'll start on monday",
+  "means": "Putting off becoming better until later.",
+  "best": [
+   "8.22",
+   "2.4"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "new year new me",
+  "means": "Resolving to become a better person.",
+  "best": [
+   "8.22",
+   "10.8",
+   "7.2"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "it's never too late to start over",
+  "means": "You can recover and begin again at any time.",
+  "best": [
+   "7.2",
+   "4.16",
+   "7.56",
+   "8.34"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "the best time to plant a tree was 20 years ago, the second best time is now",
+  "means": "Past delay is no reason not to start now.",
+  "best": [
+   "7.56",
+   "2.4",
+   "8.22",
+   "3.14"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "glow up",
+  "means": "Transforming yourself for the better.",
+  "best": [
+   "4.16",
+   "7.2",
+   "10.8"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "be here now",
+  "means": "Live in the present moment.",
+  "best": [
+   "3.10",
+   "2.14",
+   "7.29",
+   "12.3"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "live in the moment",
+  "means": "The present is all you have.",
+  "best": [
+   "3.10",
+   "2.14",
+   "12.3",
+   "7.29"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "cross that bridge when you come to it",
+  "means": "Don't worry about future problems now.",
+  "best": [
+   "7.8",
+   "8.36"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "one day at a time",
+  "means": "Take life a piece at a time instead of all at once.",
+  "best": [
+   "8.36",
+   "8.32"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "you're overthinking it",
+  "means": "You are adding stories beyond what actually happened.",
+  "best": [
+   "8.49",
+   "8.50"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "it's all in your head",
+  "means": "Your distress comes from your own judgments.",
+  "best": [
+   "2.15",
+   "12.22",
+   "4.7",
+   "9.13"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "there is nothing either good or bad but thinking makes it so",
+  "means": "Good and bad lie in judgment, not events.",
+  "best": [
+   "8.47",
+   "4.7",
+   "2.15",
+   "12.22",
+   "4.39",
+   "5.19"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "you have power over your mind, not outside events",
+  "means": "Control your judgments; events are outside you.",
+  "best": [
+   "8.47",
+   "5.19",
+   "6.52",
+   "12.22"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "it's not what happens to you but how you react to it",
+  "means": "Your response, not the event, decides your state.",
+  "best": [
+   "8.47",
+   "4.49",
+   "5.19",
+   "7.58"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "you become what you think about",
+  "means": "Habitual thoughts shape your character.",
+  "best": [
+   "5.16"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "sticks and stones may break my bones but words will never hurt me",
+  "means": "Insults can't harm you unless you let them.",
+  "best": [
+   "4.7",
+   "8.49",
+   "7.14"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "don't take it personally",
+  "means": "Others' wrongs are about them, not you.",
+  "best": [
+   "5.25",
+   "8.14",
+   "9.27",
+   "11.18"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "don't let them get under your skin",
+  "means": "Don't let other people disturb your mind.",
+  "best": [
+   "4.7",
+   "7.14",
+   "8.47",
+   "11.18"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "water off a duck's back",
+  "means": "Insults and attacks don't stick to you.",
+  "best": [
+   "8.51",
+   "7.15",
+   "4.49"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "hurt people hurt people",
+  "means": "Wrongdoers act from their own ignorance or damage, so pity them.",
+  "best": [
+   "7.26",
+   "2.1",
+   "7.63"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "never attribute to malice what can be explained by stupidity",
+  "means": "People mostly do wrong out of ignorance, not evil.",
+  "best": [
+   "12.12",
+   "7.63",
+   "11.18",
+   "2.1",
+   "7.22"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "everyone you meet is fighting a battle you know nothing about",
+  "means": "You don't know others' circumstances, so be gentle.",
+  "best": [
+   "11.18",
+   "7.63",
+   "7.26"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "forgive and forget",
+  "means": "Pardon the wrong and let it go.",
+  "best": [
+   "7.26",
+   "9.20",
+   "7.29"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "the best revenge is living well",
+  "means": "Don't retaliate; be better than the person who wronged you.",
+  "best": [
+   "6.6"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "when they go low, we go high",
+  "means": "Answer bad behaviour with good behaviour.",
+  "best": [
+   "6.6",
+   "11.13",
+   "11.9"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "kill them with kindness",
+  "means": "Meet hostility with persistent kindness.",
+  "best": [
+   "11.18",
+   "11.13",
+   "6.6"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "two wrongs don't make a right",
+  "means": "Retaliation copies the wrong.",
+  "best": [
+   "6.6"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "an eye for an eye makes the whole world blind",
+  "means": "Revenge only spreads the harm.",
+  "best": [
+   "6.6",
+   "11.18"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "holding onto anger is like drinking poison and expecting the other person to die",
+  "means": "Your anger hurts you more than the offence.",
+  "best": [
+   "11.18"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "what goes around comes around",
+  "means": "The wrongdoer harms himself.",
+  "best": [
+   "9.4",
+   "4.26",
+   "9.38"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "love your enemies",
+  "means": "Care even for those who wrong you.",
+  "best": [
+   "7.22",
+   "2.1"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "we're all in this together",
+  "means": "People are made to cooperate.",
+  "best": [
+   "2.1",
+   "6.42",
+   "7.13",
+   "7.9"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "teamwork makes the dream work",
+  "means": "Different parts working together achieve the goal.",
+  "best": [
+   "6.43",
+   "2.1",
+   "6.42",
+   "7.13"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "no man is an island",
+  "means": "Cutting yourself off from others cuts you off from the whole.",
+  "best": [
+   "11.8",
+   "8.34",
+   "9.9"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "a rising tide lifts all boats",
+  "means": "What benefits the community benefits the individual.",
+  "best": [
+   "6.54",
+   "5.22",
+   "6.45"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "it's okay to ask for help",
+  "means": "There is no shame in accepting help to do your part.",
+  "best": [
+   "7.7",
+   "7.5"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "pay it forward",
+  "means": "Keep doing good for others.",
+  "best": [
+   "7.74",
+   "11.4"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "do good and expect nothing in return",
+  "means": "Help others without wanting credit or payback.",
+  "best": [
+   "5.6",
+   "7.73",
+   "9.42"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "no good deed goes unpunished",
+  "means": "Doing good often earns abuse.",
+  "best": [
+   "7.36"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "virtue is its own reward",
+  "means": "Doing good is the payment.",
+  "best": [
+   "11.4",
+   "9.42",
+   "5.6",
+   "7.73"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "character is what you do when no one is watching",
+  "means": "Be good whether or not anyone sees.",
+  "best": [
+   "9.29",
+   "7.67",
+   "3.7"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "do the right thing",
+  "means": "Do what is just regardless of consequences.",
+  "best": [
+   "7.44",
+   "12.17",
+   "6.2"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "work hard in silence, let your success make the noise",
+  "means": "Do the work without broadcasting it.",
+  "best": [
+   "5.6",
+   "9.29"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "do it for the gram",
+  "means": "Doing things for likes and attention.",
+  "best": [
+   "6.16",
+   "6.51",
+   "4.20"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "pics or it didn't happen",
+  "means": "Needing others to see and validate what you did.",
+  "best": [
+   "5.6",
+   "7.73"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "likes don't define your worth",
+  "means": "Praise doesn't make you better or worse.",
+  "best": [
+   "4.20",
+   "6.16"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "stop caring what people think",
+  "means": "Others' opinions of you shouldn't govern you.",
+  "best": [
+   "12.4",
+   "8.1",
+   "9.27",
+   "9.34"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "you can't please everyone",
+  "means": "Someone will always disapprove, even of the best.",
+  "best": [
+   "10.36",
+   "9.30",
+   "7.68"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "fame is fleeting",
+  "means": "Renown fades fast.",
+  "best": [
+   "4.33",
+   "7.6",
+   "7.34",
+   "4.19",
+   "2.17"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "nobody will remember you in 100 years",
+  "means": "You and everyone who remembers you will soon be forgotten.",
+  "best": [
+   "7.21",
+   "4.19",
+   "4.33",
+   "9.30",
+   "8.44"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "everyone's gonna die so who cares",
+  "means": "Everyone dies, the famous and the obscure alike.",
+  "best": [
+   "4.48",
+   "8.25",
+   "6.47"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "death is the great equalizer",
+  "means": "Death makes the great and the lowly the same.",
+  "best": [
+   "6.24",
+   "9.33",
+   "3.3"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "don't fear death",
+  "means": "Death is natural and nothing to be afraid of.",
+  "best": [
+   "9.3",
+   "8.58",
+   "2.12",
+   "2.11"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "i'm not afraid to die, i just don't want to be there when it happens",
+  "means": "Fear of death is fear of what we'll feel.",
+  "best": [
+   "8.58",
+   "11.3"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "it's not the years in your life that count, it's the life in your years",
+  "means": "Length of life doesn't matter; how you live it does.",
+  "best": [
+   "12.36",
+   "2.14",
+   "6.49",
+   "12.35"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "all the world's a stage",
+  "means": "Life is a play and we are actors who exit when it's done.",
+  "best": [
+   "12.36",
+   "10.27",
+   "3.8",
+   "11.6"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "we're all just passing through",
+  "means": "Life is a short visit.",
+  "best": [
+   "2.17",
+   "3.3",
+   "4.48"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "dust in the wind",
+  "means": "We all end as dust and ash.",
+  "best": [
+   "5.33",
+   "12.27",
+   "4.48",
+   "7.34"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "you can't take it with you",
+  "means": "When you die you leave everything here.",
+  "best": [
+   "10.11",
+   "5.33"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "this too shall pass",
+  "means": "Hard things don't last.",
+  "best": [
+   "5.23",
+   "4.43",
+   "7.64",
+   "6.15"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "nothing lasts forever",
+  "means": "Everything changes and passes away.",
+  "best": [
+   "4.43",
+   "9.19",
+   "7.25",
+   "6.4"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "change is the only constant",
+  "means": "Everything is constantly changing.",
+  "best": [
+   "4.36",
+   "7.18",
+   "9.19",
+   "4.3"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "people hate change",
+  "means": "Fearing or resisting change.",
+  "best": [
+   "7.18",
+   "9.35"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "history repeats itself",
+  "means": "The same patterns recur in every age.",
+  "best": [
+   "7.49",
+   "10.27",
+   "7.1",
+   "6.37"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "nothing new under the sun",
+  "means": "Everything has happened before.",
+  "best": [
+   "7.1",
+   "6.37",
+   "9.14"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "same shit, different day",
+  "means": "Life repeats itself monotonously.",
+  "best": [
+   "6.46",
+   "9.14",
+   "7.1"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "it is what it is",
+  "means": "Accept the situation as it is.",
+  "best": [
+   "8.50",
+   "7.57",
+   "10.20"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "shit happens",
+  "means": "Bad things are a normal part of life.",
+  "best": [
+   "8.50",
+   "4.44",
+   "8.15",
+   "12.13"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "everything happens for a reason",
+  "means": "Whatever happens fits a larger order.",
+  "best": [
+   "4.10",
+   "10.5",
+   "5.8",
+   "4.45"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "it was meant to be",
+  "means": "What happens was destined.",
+  "best": [
+   "10.5",
+   "5.8",
+   "4.26"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "god has a plan",
+  "means": "Providence arranges things well.",
+  "best": [
+   "6.44",
+   "2.3",
+   "12.14"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "go with the flow",
+  "means": "Follow events willingly instead of resisting.",
+  "best": [
+   "10.28",
+   "4.34",
+   "4.23",
+   "7.57"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "amor fati",
+  "means": "Love whatever fate brings.",
+  "best": [
+   "7.57",
+   "4.23",
+   "10.21"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "roll with the punches",
+  "means": "Absorb setbacks and keep going.",
+  "best": [
+   "7.61",
+   "6.20"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "expect the unexpected",
+  "means": "Be ready for sudden setbacks.",
+  "best": [
+   "7.61"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "expect nothing and you'll never be disappointed",
+  "means": "Anticipate people's faults so they don't upset you.",
+  "best": [
+   "2.1",
+   "9.42",
+   "11.18"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "people are the worst",
+  "means": "Other people are irritating and badly behaved.",
+  "best": [
+   "2.1",
+   "9.42",
+   "5.17"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "wake up and choose violence",
+  "means": "Starting the day ready to fight with people.",
+  "best": [
+   "2.1",
+   "11.18"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "ugh, i hate mondays",
+  "means": "Not wanting to get up and work.",
+  "best": [
+   "5.1",
+   "8.12",
+   "8.9"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "five more minutes",
+  "means": "Wanting to stay in bed instead of getting up.",
+  "best": [
+   "5.1",
+   "8.12"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "rise and grind",
+  "means": "Get up and get to work.",
+  "best": [
+   "5.1",
+   "8.12"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "stop complaining",
+  "means": "Act on it or bear it, but don't whine.",
+  "best": [
+   "8.47",
+   "8.9",
+   "10.3",
+   "7.51"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "suck it up",
+  "means": "Endure it without fuss.",
+  "best": [
+   "10.3",
+   "7.64",
+   "5.18"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "what doesn't kill you makes you stronger",
+  "means": "Hardship used well makes you better.",
+  "best": [
+   "10.33",
+   "4.1",
+   "4.49"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "the obstacle is the way",
+  "means": "Obstacles become the path forward.",
+  "best": [
+   "5.20",
+   "4.1",
+   "8.35"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "when life gives you lemons, make lemonade",
+  "means": "Turn misfortune into material for something good.",
+  "best": [
+   "5.20",
+   "8.35",
+   "7.58",
+   "4.1"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "every cloud has a silver lining",
+  "means": "Misfortune can be good fortune if borne well.",
+  "best": [
+   "4.49",
+   "5.8"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "glass half full",
+  "means": "See the good in what happened.",
+  "best": [
+   "4.49",
+   "7.27"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "never give up",
+  "means": "Keep going after failure.",
+  "best": [
+   "5.9",
+   "6.29",
+   "6.19"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "fall seven times, stand up eight",
+  "means": "When you fail, get back up.",
+  "best": [
+   "5.9",
+   "6.11",
+   "10.8"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "if they can do it, so can you",
+  "means": "What's possible for others is possible for you.",
+  "best": [
+   "6.19"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "practice makes perfect",
+  "means": "Skill comes from practice.",
+  "best": [
+   "12.6"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "progress, not perfection",
+  "means": "Be content with improvement rather than flawlessness.",
+  "best": [
+   "5.9",
+   "9.29"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "done is better than perfect",
+  "means": "Don't wait for ideal conditions; do what you can.",
+  "best": [
+   "9.29",
+   "5.9"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "pain is temporary",
+  "means": "Pain has limits and passes.",
+  "best": [
+   "7.64",
+   "7.33"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "mind over matter",
+  "means": "The mind can stay calm despite bodily pain.",
+  "best": [
+   "8.28",
+   "7.33",
+   "8.40",
+   "5.26"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "control what you can control",
+  "means": "Focus on what's in your power and let the rest go.",
+  "best": [
+   "8.17",
+   "6.41",
+   "9.40",
+   "8.47"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "god grant me the serenity to accept the things i cannot change",
+  "means": "Ask for the right attitude, not different outcomes.",
+  "best": [
+   "9.40",
+   "8.17",
+   "6.41"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "do your job",
+  "means": "Do your own duty and ignore the rest.",
+  "best": [
+   "6.22",
+   "6.2",
+   "8.32"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "trust the process",
+  "means": "Do each step properly and accept what comes.",
+  "best": [
+   "8.32",
+   "6.26",
+   "4.34"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "keep calm and carry on",
+  "means": "Stay composed and keep doing your work.",
+  "best": [
+   "8.5",
+   "6.26",
+   "4.49",
+   "5.2"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "just breathe",
+  "means": "Let the disturbance go and return to calm.",
+  "best": [
+   "5.2",
+   "6.11"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "calm is a superpower",
+  "means": "Gentleness and calm are strength.",
+  "best": [
+   "11.18",
+   "4.49"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "protect your peace",
+  "means": "Guard your inner calm as a refuge.",
+  "best": [
+   "8.48",
+   "4.3",
+   "7.28"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "hakuna matata",
+  "means": "No worries.",
+  "best": [
+   "9.13",
+   "8.5",
+   "12.22",
+   "6.52"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "don't worry, be happy",
+  "means": "Drop your worries.",
+  "best": [
+   "9.13",
+   "6.52",
+   "12.22"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "let it go",
+  "means": "Release the judgment that's bothering you.",
+  "best": [
+   "12.25",
+   "7.29",
+   "9.13",
+   "12.22"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "don't cry over spilled milk",
+  "means": "The past can't be changed, so don't dwell on it.",
+  "best": [
+   "12.1",
+   "8.36",
+   "6.32"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "what's done is done",
+  "means": "Leave the past behind.",
+  "best": [
+   "12.1",
+   "8.36",
+   "6.32"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "don't cry because it's over, smile because it happened",
+  "means": "Accept the end gratefully.",
+  "best": [
+   "4.48",
+   "12.36"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "life goes on",
+  "means": "Births and deaths keep coming; the world continues.",
+  "best": [
+   "7.40",
+   "10.34"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "hug your kids tonight, you never know",
+  "means": "Love people knowing you may lose them.",
+  "best": [
+   "11.34"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "don't sweat the small stuff",
+  "means": "Most things don't deserve your worry.",
+  "best": [
+   "4.32",
+   "6.36"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "in the grand scheme of things",
+  "means": "Seen against the whole, everything is small.",
+  "best": [
+   "6.36",
+   "12.32",
+   "5.24",
+   "9.32"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "we're all just specks of dust on a pale blue dot",
+  "means": "Earth and our lives are tiny in the cosmos.",
+  "best": [
+   "6.36",
+   "4.3",
+   "8.21"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "money can't buy happiness",
+  "means": "Happiness isn't found in wealth.",
+  "best": [
+   "8.1",
+   "5.36"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "mo money mo problems",
+  "means": "More possessions bring more worries.",
+  "best": [
+   "8.3",
+   "5.12"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "less is more",
+  "means": "Fewer things and activities make life better.",
+  "best": [
+   "4.24",
+   "7.67"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "keep it simple",
+  "means": "Take the simple, natural way.",
+  "best": [
+   "4.51",
+   "4.24"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "say less",
+  "means": "Talk less.",
+  "best": [
+   "3.5",
+   "8.30"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "keep it real",
+  "means": "Be honest and genuine.",
+  "best": [
+   "11.15",
+   "12.17",
+   "11.19"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "honesty is the best policy",
+  "means": "Always tell the truth.",
+  "best": [
+   "12.17",
+   "9.1",
+   "3.7"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "fake it till you make it",
+  "means": "Pretend to be what you are not yet.",
+  "best": [
+   "11.15"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "watch out for fake friends",
+  "means": "Beware false friendship.",
+  "best": [
+   "11.15"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "everyone is fake",
+  "means": "People flatter and despise each other.",
+  "best": [
+   "11.14",
+   "11.15"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "be yourself, everyone else is already taken",
+  "means": "Stay true to your own nature whatever others do.",
+  "best": [
+   "7.15",
+   "5.3"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "i could be wrong",
+  "means": "Be open to being corrected.",
+  "best": [
+   "6.21",
+   "8.16",
+   "4.12"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "own your mistakes",
+  "means": "Accept correction and change.",
+  "best": [
+   "6.21",
+   "8.16"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "check yourself before you wreck yourself",
+  "means": "Examine your own mind before acting.",
+  "best": [
+   "10.37",
+   "5.11",
+   "10.24"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "let he who is without sin cast the first stone",
+  "means": "Before blaming others, see your own faults.",
+  "best": [
+   "10.30",
+   "11.18",
+   "9.42"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "don't judge a book by its cover",
+  "means": "Judge the inner person, not the outward appearance.",
+  "best": [
+   "12.2",
+   "7.66"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "all that glitters is not gold",
+  "means": "Impressive things are often worthless underneath.",
+  "best": [
+   "6.13"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "the unexamined life is not worth living",
+  "means": "Constantly examine your own mind.",
+  "best": [
+   "5.11",
+   "10.24",
+   "12.19"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "know thyself",
+  "means": "Pay attention to your own mind.",
+  "best": [
+   "2.8",
+   "5.11",
+   "6.3"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "happiness comes from within",
+  "means": "The source of good is inside you.",
+  "best": [
+   "7.59",
+   "7.67",
+   "4.3"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "treat yo self",
+  "means": "Indulge in pleasure.",
+  "best": [
+   "8.10",
+   "5.9",
+   "7.27"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "count your blessings",
+  "means": "Appreciate what you have.",
+  "best": [
+   "7.27"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "fomo",
+  "means": "Anxiety about missing out on experiences elsewhere.",
+  "best": [
+   "10.1",
+   "7.27",
+   "11.11"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "the grass is always greener on the other side",
+  "means": "Other places and lives look better than yours.",
+  "best": [
+   "10.23",
+   "4.3",
+   "10.1",
+   "5.16"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "wherever you go, there you are",
+  "means": "You bring your mind everywhere.",
+  "best": [
+   "8.45",
+   "10.23",
+   "4.3"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "i need a vacation",
+  "means": "Longing for a getaway.",
+  "best": [
+   "4.3"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "bloom where you're planted",
+  "means": "Make the best of your circumstances.",
+  "best": [
+   "6.39",
+   "5.16",
+   "11.7"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "think before you act",
+  "means": "Don't act rashly or without purpose.",
+  "best": [
+   "12.20",
+   "4.2",
+   "12.24"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "haste makes waste",
+  "means": "Don't hurry.",
+  "best": [
+   "6.30",
+   "1.15"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "be water, my friend",
+  "means": "Adapt to whatever is in front of you.",
+  "best": [
+   "4.1",
+   "8.32",
+   "6.50"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "stay humble",
+  "means": "Don't let success make you proud.",
+  "best": [
+   "8.33",
+   "6.30",
+   "12.27"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "easy come, easy go",
+  "means": "Hold fortune loosely.",
+  "best": [
+   "8.33",
+   "10.14"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "ego is the enemy",
+  "means": "Pride and self-importance are the problem.",
+  "best": [
+   "12.27",
+   "6.30",
+   "9.29"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "lock in",
+  "means": "Focus fully on the task in front of you.",
+  "best": [
+   "2.5",
+   "3.12",
+   "8.5",
+   "8.22"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "stop doomscrolling",
+  "means": "You're distracted by things that don't matter.",
+  "best": [
+   "2.7",
+   "4.24",
+   "3.4"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "busy is not the same as productive",
+  "means": "Activity without purpose is wasted.",
+  "best": [
+   "2.7",
+   "4.24"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "work-life balance",
+  "means": "Don't be so busy you have no rest.",
+  "best": [
+   "8.51"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "find your why",
+  "means": "Know what you exist for.",
+  "best": [
+   "8.19",
+   "11.21"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "do what you love",
+  "means": "Love your work and be content in it.",
+  "best": [
+   "4.31",
+   "5.1"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "read more books",
+  "means": "Reading as the path to wisdom.",
+  "best": [
+   "2.3",
+   "2.2",
+   "8.8",
+   "3.14"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "learn from those who came before you",
+  "means": "Keep the example of good people in mind.",
+  "best": [
+   "11.26",
+   "6.48",
+   "1.16"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "i owe everything to my parents",
+  "means": "Gratitude for those who raised you.",
+  "best": [
+   "1.17",
+   "1.3"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "you can't change other people",
+  "means": "Others won't change because you want them to.",
+  "best": [
+   "9.29",
+   "5.17",
+   "8.4"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "be the change you wish to see in the world",
+  "means": "Fix your own conduct instead of demanding others change.",
+  "best": [
+   "7.71",
+   "10.16"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "misery loves company",
+  "means": "Joining others in their complaining.",
+  "best": [
+   "7.43"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "stop and smell the roses",
+  "means": "Notice the beauty in ordinary things.",
+  "best": [
+   "3.2",
+   "7.47"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "enjoy the little things",
+  "means": "Delight in small everyday goods.",
+  "best": [
+   "3.2",
+   "12.29"
+  ],
+  "split": "dev"
+ },
+ {
+  "quote": "don't feed the trolls",
+  "means": "Don't react to people trying to provoke you.",
+  "best": [
+   "6.20",
+   "11.13",
+   "9.27"
+  ],
+  "split": "test"
+ },
+ {
+  "quote": "live laugh love",
+  "means": "Enjoy life, one good thing after another.",
+  "best": [
+   "12.29",
+   "6.48"
+  ],
+  "split": "test"
+ }
+]

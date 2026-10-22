@@ -1,0 +1,58 @@
+# Runs scripts/tune/run.mjs against this branch's preview once Workers Builds has deployed it,
+# whenever scripts/tune/run.txt changes. The score dump is saved as a git note on the commit
+# (refs/notes/jev-tune) so it can be analysed without new model calls.
+name: Tune matcher
+
+on:
+  push:
+    branches: [claude/project-thread-inlpo4]
+    paths: [scripts/tune/run.txt]
+
+permissions:
+  checks: read
+  contents: write
+
+jobs:
+  tune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Wait for the preview deploy of this commit
+        id: preview
+        run: |
+          for i in $(seq 1 80); do
+            run=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs" \
+              --jq '[.check_runs[] | select(.name | startswith("Workers Builds"))][0]')
+            state=$(echo "$run" | jq -r '.conclusion // "pending"')
+            echo "Workers Builds: $state"
+            if [ "$state" = "success" ]; then
+              url=$(echo "$run" | jq -r '.output.summary' | grep -o 'Preview Alias URL: https://[^ )]*' | head -1 | sed 's/Preview Alias URL: //')
+              [ -z "$url" ] && url=$(echo "$run" | jq -r '.output.summary' | grep -o 'Preview URL: https://[^ )]*' | head -1 | sed 's/Preview URL: //')
+              echo "url=$url" >> "$GITHUB_OUTPUT"
+              sleep 20
+              exit 0
+            fi
+            [ "$state" = "failure" ] && exit 1
+            sleep 15
+          done
+          exit 1
+      - name: Run
+        run: |
+          echo "Preview: ${{ steps.preview.outputs.url }}"
+          node scripts/tune/run.mjs "${{ steps.preview.outputs.url }}" $(grep -v '^#' scripts/tune/run.txt) > tune.jsonl
+          wc -l tune.jsonl
+          grep -c fatal tune.jsonl || true
+      - name: Save the output as a git note
+        if: always()
+        run: |
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin refs/notes/jev-tune:refs/notes/jev-tune || true
+          git notes --ref=jev-tune add -f -F tune.jsonl HEAD
+          git push origin refs/notes/jev-tune
