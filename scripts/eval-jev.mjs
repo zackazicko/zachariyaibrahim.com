@@ -6,12 +6,16 @@
 // By default each case scores a fixed subset (every expected passage plus every 4th passage
 // as distractors, about a third of the book) so comparisons cost a third of a full search.
 // Pass --full to rank against the whole book, as the app does.
+// --dump prints every passage's score per quote, so rankings can be re-analysed without new
+// model calls, and --calibrate adds unlabelled quotes whose scores are only dumped.
 
 import { readFileSync } from 'node:fs'
 
 const args = process.argv.slice(2)
-const full = args.includes('--full')
-const [base = 'http://localhost:8787', ...variantArgs] = args.filter(a => a !== '--full')
+const flags = new Set(args.filter(a => a.startsWith('--')))
+const full = flags.has('--full')
+const dump = flags.has('--dump')
+const [base = 'http://localhost:8787', ...variantArgs] = args.filter(a => !a.startsWith('--'))
 const variants = variantArgs.length ? variantArgs : ['default']
 const corpus = JSON.parse(readFileSync(new URL('../src/zackos/jevitations/meditations.json', import.meta.url)))
 const byId = new Map(corpus.passages.map(p => [p.id, p]))
@@ -21,10 +25,20 @@ const CASES = [
   ['The obstacle is the way', ['5.XVII', '4.I', '8.XXXIII']],
   ['This too shall pass', ['4.XXXV', '9.XXVII', '12.XX']],
   ["Don't sweat the small stuff", ['7.VI', '8.XLVII', '4.XXXVIII']],
-  ['Haters gonna hate', ['5.III', '9.XXXII', '7.XII']],
+  ['Haters gonna hate', ['5.III', '9.XXXII', '7.XII', '11.XII']],
   ['You only live once', ['2.II', '7.XL', '4.XIV', '2.VIII']],
-  ['Touch grass', ['4.III', '8.XLVI', '5.XXIII']],
-  ['Nobody will remember your name in a hundred years', ['4.XVI', '4.XXVIII', '5.XXVII', '6.XVII']],
+  ['Touch grass', ['6.XXIX', '7.III', '3.IV', '9.XXIX']],
+  ['Nobody will remember your name in a hundred years', ['4.XVI', '4.XXVIII', '5.XXVII', '6.XVII', '7.VII']],
+]
+
+// Everyday sayings with no labels, used to measure how much each passage scores for any quote
+const CALIBRATION = [
+  'Money can\'t buy happiness',
+  'Practice makes perfect',
+  'Fake it till you make it',
+  'Treat people the way you want to be treated',
+  'Work smarter, not harder',
+  'Honesty is the best policy',
 ]
 
 const subset = [
@@ -70,6 +84,7 @@ for (const variant of variants) {
   for (const [quote, expected] of CASES) {
     const t = Date.now()
     const { done, cache } = await run(quote, variant)
+    if (dump) console.log(`SCORES ${variant} ${JSON.stringify(quote)} ${JSON.stringify(Object.fromEntries(done.ranked.map(r => [r.id, r.score])))}`)
     if (!done.ranked.length) {
       console.log(`FAIL  "${quote}"  ${done.error ?? 'no results'}`)
       continue
@@ -87,4 +102,9 @@ for (const variant of variants) {
     }
   }
   console.log(`--- ${variant}: top1 ${top1}/${CASES.length}, top5 ${top5}/${CASES.length}, MRR ${(rr / CASES.length).toFixed(2)}, ${tokens} input tokens`)
+  if (!flags.has('--calibrate')) continue
+  for (const quote of CALIBRATION) {
+    const { done } = await run(quote, variant)
+    console.log(`SCORES ${variant} ${JSON.stringify(quote)} ${JSON.stringify(Object.fromEntries(done.ranked.map(r => [r.id, r.score])))}`)
+  }
 }

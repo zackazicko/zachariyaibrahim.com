@@ -1,9 +1,9 @@
 /* =============================================================================
    JEVITATIONS MATCHING
    One decision model (Jev, or its drop-in peer Clef) is the only model called
-   per search. It reads the quote as state and answers one yes/no question per
-   passage: does this passage share the quote's core idea? The plain-English
-   glosses are written ahead of time.
+   per search. It reads the quote as state and scores every passage on how
+   closely it makes the quote's point. The plain-English glosses are written
+   ahead of time.
    ============================================================================= */
 
 export interface Passage {
@@ -84,12 +84,31 @@ const POINT_RUBRIC = [
   'Same point: says what the quote means, in its own terms',
 ]
 
-export const PROMPT_STYLES = ['noul', 'score', 'point'] as const
+// guided: the point scale, with worked examples of reading a saying for its point. The examples
+// are deliberately far from the eval quotes so they teach the reading, not the answers.
+const READING_EXAMPLES = [
+  '"Don\'t count your chickens before they hatch" is about not relying on results before they arrive, not about farming.',
+  '"Too many cooks spoil the broth" is about a job going wrong when too many people run it, not about soup.',
+  '"Let them cook" is about giving someone room to work before judging them, not about food.',
+  '"Sleep on it" is advice to wait until you are calm before deciding, not about sleep.',
+]
+
+export const PROMPT_STYLES = ['noul', 'score', 'point', 'guided'] as const
 export type PromptStyle = (typeof PROMPT_STYLES)[number]
 export const PROMPT_REVISION = 2
 
 export function buildState(quote: string, style: PromptStyle) {
   if (style === 'noul') return { quote }
+  if (style === 'guided') {
+    return (
+      `A person typed this quote: "${quote}"\n` +
+      'People type sayings, slang, lyrics and jokes whose point is not in their literal words. ' +
+      'Read it the way a fluent native speaker would and work out the idea, advice or attitude it expresses. For example:\n' +
+      READING_EXAMPLES.map(e => `- ${e}`).join('\n') +
+      '\nThat idea is what each passage is compared against. A passage matches only when it makes the same point; ' +
+      'sharing a word, image or mood with the literal quote is not enough.'
+    )
+  }
   return (
     `A person typed this quote: "${quote}"\n` +
     'Read it the way a fluent native speaker would, taking idioms, slang, sarcasm and metaphors figuratively, ' +
@@ -121,7 +140,7 @@ export function buildQuestions(batch: Passage[], useGloss: boolean, style: Promp
       instructions:
         `Meditations passage (1634 English): "${p.text}"${gloss}\n` +
         'How closely does this passage express the idea behind the quote? Judge meaning, not shared words.',
-      criteria: style === 'point' ? POINT_RUBRIC : SCORE_RUBRIC,
+      criteria: style === 'score' ? SCORE_RUBRIC : POINT_RUBRIC,
     }
   }
   return questions

@@ -63,7 +63,7 @@ function config(env: Env, request: Request): MatchConfig {
   const gloss = (tunable && request.headers.get('x-jev-gloss')) || env.JEV_USE_GLOSS
   return {
     jevModel: env.JEV_MODEL || 'typesafe/jev-1.14.0',
-    prompt: PROMPT_STYLES.includes(prompt as PromptStyle) ? (prompt as PromptStyle) : 'score',
+    prompt: PROMPT_STYLES.includes(prompt as PromptStyle) ? (prompt as PromptStyle) : 'point',
     useGloss: gloss !== 'false',
     batchSize: Number(env.JEV_BATCH_SIZE) || 60,
     mock: env.JEV_MOCK === '1',
