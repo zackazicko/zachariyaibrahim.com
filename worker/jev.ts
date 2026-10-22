@@ -192,7 +192,7 @@ export function buildQuestions(batch: Passage[], useGloss: boolean, style: Promp
   return questions
 }
 
-type JevAnswer = Record<string, unknown> & { noul?: number; score?: number }
+interface JevAnswer { noul?: number; score?: number; probabilities?: Record<string, number> }
 interface JevResponse { answers?: Record<string, JevAnswer>; usage?: { input_tokens?: number } }
 
 async function ask(ai: Ai, model: string, state: unknown, questions: Record<string, unknown>) {
@@ -205,16 +205,11 @@ async function ask(ai: Ai, model: string, state: unknown, questions: Record<stri
   } as never)) as JevResponse
 }
 
-// A score answer carries the probability of each rubric level next to the weighted score. The
-// field name is not documented, so take the first list (or level-keyed map) of n probabilities.
+// A score answer carries the probability of each rubric level, keyed "0" to "n-1", next to
+// the weighted score
 export function levelProbs(a: JevAnswer | undefined, n: number): number[] | null {
-  if (!a) return null
-  for (const [key, v] of Object.entries(a)) {
-    if (key === 'score' || key === 'noul') continue
-    const list = Array.isArray(v) ? v : v && typeof v === 'object' ? Object.values(v) : null
-    if (list?.length === n && list.every(x => typeof x === 'number')) return list as number[]
-  }
-  return null
+  const probs = Array.from({ length: n }, (_, i) => a?.probabilities?.[i])
+  return probs.every(p => typeof p === 'number') ? (probs as number[]) : null
 }
 
 const round = (v: number) => Math.round(v * 1000) / 1000

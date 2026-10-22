@@ -41,8 +41,9 @@ const MAX_QUOTE = 400
 const CACHE_TTL = 60 * 60 * 24 * 30
 // v2: George Long's translation, sentence highlights
 const CACHE_VERSION = 'v2'
-// Rough input tokens per passage, measured on the point scale, used to check the budget up front
-const TOKENS_PER_PASSAGE = 390
+// Rough input tokens per passage, measured on the point scale with Long's text (a search is
+// about 90k), used to check the budget up front
+const TOKENS_PER_PASSAGE = 190
 // The highlight calls read each of the top passages twice, whole and sentence by sentence
 const HIGHLIGHT_TOKENS = 1200
 
