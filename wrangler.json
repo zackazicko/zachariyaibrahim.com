@@ -62,7 +62,7 @@
       "JEV_BATCH_SIZE": "60",
       "JEV_PROMPT": "point",
       "JEV_DAILY_TOKENS": "52000000",
-      "JEV_GATEWAY": "jevitations"
+      "JEV_GATEWAY": "default"
     }
   },
   "observability": {
