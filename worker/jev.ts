@@ -72,7 +72,7 @@ export const MAX_BATCH_CHARS = 36_000
 
 // The money for calls has run out: Workers AI error 4006 (the daily free allocation is used up),
 // the gateway's spend limit, or no credits left. Retrying cannot help until it resets.
-export const OUT_OF_BUDGET = /\b4006\b|daily free allocation|spend limit|insufficient (?:wholesale )?credits|\b402\b/i
+export const OUT_OF_BUDGET = /\b4006\b|daily free allocation|spend limit|insufficient[\w ]*credits|\b402\b/i
 
 export function makeBatches(passages: Passage[], size: number): Passage[][] {
   const n = Math.max(1, Math.min(size, MAX_BATCH))

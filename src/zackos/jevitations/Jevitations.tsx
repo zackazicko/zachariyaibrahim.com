@@ -45,7 +45,7 @@ const UNREACHABLE = 'Marcus could not be reached. Try again.'
 const RESTING = 'Marcus is resting until tomorrow.'
 // The day's money for calls is spent: Workers AI's free allocation, the gateway's spend limit,
 // or its credits
-const OUT_OF_BUDGET = /\b4006\b|daily free allocation|spend limit|insufficient (?:wholesale )?credits|\b402\b/i
+const OUT_OF_BUDGET = /\b4006\b|daily free allocation|spend limit|insufficient[\w ]*credits|\b402\b/i
 // Upstream error text shows only on preview and local hosts, never on the live site
 const SHOW_ERROR_DETAIL = /(^localhost$|^127\.|\.workers\.dev$)/.test(window.location.hostname)
 
