@@ -18,6 +18,8 @@ type Passage = (typeof PASSAGES)[number]
 export interface TuneEnv {
   AI: Ai
   JEV_KV: KVNamespace
+  JEV_MODEL?: string
+  JEV_GATEWAY?: string
   JEV_DAILY_TOKENS?: string
 }
 
@@ -68,7 +70,6 @@ export const DESIGNS: Record<string, Design> = {
   'situation-gloss': { show: 'gloss', state: SITUATION_STATE, ask: SITUATION_ASK, rubric: SITUATION_RUBRIC },
 }
 
-const MODEL = '@cf/cloudflare/clef-flash'
 const MAX_BATCH = 60
 const MAX_BATCH_CHARS = 36_000
 // Tuning may use at most this much of the day's shared token budget, so the app keeps the rest
@@ -100,16 +101,20 @@ function batches(passages: Passage[], d: Design) {
 
 const key = (id: string) => 'p_' + id.replace('.', '_')
 
-async function runBatch(ai: Ai, d: Design, quote: string, batch: Passage[]) {
+async function runBatch(env: TuneEnv, d: Design, quote: string, batch: Passage[]) {
   const questions: Record<string, unknown> = {}
   for (const p of batch) {
     questions[key(p.id)] = { type: 'score', instructions: `${describe(p, d.show)}\n${d.ask}`, criteria: d.rubric }
   }
-  const res = (await ai.run(MODEL as keyof AiModels, {
-    model: 'clef-flash',
-    state: d.state(quote),
-    questions,
-  } as never)) as {
+  // Jev is billed through AI Gateway, so a gateway with credits is named when one is configured;
+  // Clef also wants its short name in the body
+  const model = env.JEV_MODEL || 'typesafe/jev'
+  const clef = model.match(/^@cf\/cloudflare\/(clef(?:-flash)?)$/)?.[1]
+  const res = (await env.AI.run(
+    model as keyof AiModels,
+    { ...(clef ? { model: clef } : {}), state: d.state(quote), questions } as never,
+    (env.JEV_GATEWAY ? { gateway: { id: env.JEV_GATEWAY } } : {}) as never,
+  )) as {
     answers?: Record<string, { score?: number; probabilities?: Record<string, number> }>
     usage?: { input_tokens?: number }
   }
@@ -154,7 +159,7 @@ export async function handleTune(request: Request, env: TuneEnv) {
     batches(passages, d).map(async batch => {
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
-          const r = await runBatch(env.AI, d, quote, batch)
+          const r = await runBatch(env, d, quote, batch)
           Object.assign(scores, r.scores)
           tokens += r.tokens
           return

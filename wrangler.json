@@ -57,11 +57,12 @@
       }
     ],
     "vars": {
-      "JEV_MODEL": "@cf/cloudflare/clef-flash",
+      "JEV_MODEL": "typesafe/jev",
       "JEV_USE_GLOSS": "true",
       "JEV_BATCH_SIZE": "60",
       "JEV_PROMPT": "point",
-      "JEV_DAILY_TOKENS": "52000000"
+      "JEV_DAILY_TOKENS": "52000000",
+      "JEV_GATEWAY": "jevitations"
     }
   },
   "observability": {
