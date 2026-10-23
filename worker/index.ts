@@ -24,6 +24,7 @@ interface Env {
   MATCH_LIMITER: RateLimit
   JEV_KV: KVNamespace
   JEV_MODEL?: string
+  JEV_GATEWAY?: string
   JEV_PROMPT?: string
   JEV_USE_GLOSS?: string
   JEV_RANK?: string
@@ -79,7 +80,8 @@ function config(env: Env, request: Request): MatchConfig {
   const gloss = (tunable && request.headers.get('x-jev-gloss')) || env.JEV_USE_GLOSS
   const rank = (tunable && request.headers.get('x-jev-rank')) || env.JEV_RANK
   return {
-    jevModel: env.JEV_MODEL || 'typesafe/jev-1.14.0',
+    jevModel: env.JEV_MODEL || 'typesafe/jev',
+    gateway: env.JEV_GATEWAY || undefined,
     prompt: PROMPT_STYLES.includes(prompt as PromptStyle) ? (prompt as PromptStyle) : 'point',
     useGloss: gloss !== 'false',
     rank: RANK_BY.includes(rank as RankBy) ? (rank as RankBy) : 'mean',
@@ -138,8 +140,8 @@ async function handleMatch(request: Request, env: Env, ctx: ExecutionContext) {
   const { success } = await env.MATCH_LIMITER.limit({ key: ip })
   if (!success) return fail(429, 'rate_limited', 'Marcus needs a moment. Try again in a minute.', { 'retry-after': '60' })
 
-  // The daily budget is counted in model input tokens, the unit Workers AI bills in. The default
-  // stays inside the free 10k neurons; wrangler.json sets 52M, about $2 a day on Clef-flash.
+  // The daily budget is counted in model input tokens, the unit Jev bills in. wrangler.json sets
+  // 52M, about $2.20 a day on Jev; the gateway's spend limit is the hard stop behind it.
   const day = new Date().toISOString().slice(0, 10)
   const budgetKey = `tokens:${day}`
   const budget = Number(env.JEV_DAILY_TOKENS) || 2_800_000

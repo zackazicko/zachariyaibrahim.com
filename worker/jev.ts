@@ -27,6 +27,8 @@ export interface Corpus {
 
 export interface MatchConfig {
   jevModel: string
+  // AI Gateway that bills the calls from its credits and holds the spend limit
+  gateway?: string
   prompt: PromptStyle
   useGloss: boolean
   rank: RankBy
@@ -68,9 +70,9 @@ export const MAX_BATCH = 60
 // about 3 characters a token, so batches are packed by text length well under both.
 export const MAX_BATCH_CHARS = 36_000
 
-// Workers AI error 4006: the account's daily free allocation of neurons is used up. Retrying
-// cannot help until it resets at 00:00 UTC.
-export const OUT_OF_NEURONS = /\b4006\b|daily free allocation/i
+// The money for calls has run out: Workers AI error 4006 (the daily free allocation is used up),
+// the gateway's spend limit, or no credits left. Retrying cannot help until it resets.
+export const OUT_OF_BUDGET = /\b4006\b|daily free allocation|spend limit|insufficient (?:wholesale )?credits|\b402\b/i
 
 export function makeBatches(passages: Passage[], size: number): Passage[][] {
   const n = Math.max(1, Math.min(size, MAX_BATCH))
@@ -199,14 +201,14 @@ export function buildQuestions(batch: Passage[], useGloss: boolean, style: Promp
 interface JevAnswer { noul?: number; score?: number; probabilities?: Record<string, number> }
 interface JevResponse { answers?: Record<string, JevAnswer>; usage?: { input_tokens?: number } }
 
-async function ask(ai: Ai, model: string, state: unknown, questions: Record<string, unknown>) {
+async function ask(ai: Ai, cfg: MatchConfig, state: unknown, questions: Record<string, unknown>) {
   // Clef speaks the same System One API as Jev but also wants its short name in the body
-  const clef = model.match(/^@cf\/cloudflare\/(clef(?:-flash)?)$/)?.[1]
-  return (await ai.run(model as keyof AiModels, {
-    ...(clef ? { model: clef } : {}),
-    state,
-    questions,
-  } as never)) as JevResponse
+  const clef = cfg.jevModel.match(/^@cf\/cloudflare\/(clef(?:-flash)?)$/)?.[1]
+  return (await ai.run(
+    cfg.jevModel as keyof AiModels,
+    { ...(clef ? { model: clef } : {}), state, questions } as never,
+    (cfg.gateway ? { gateway: { id: cfg.gateway } } : {}) as never,
+  )) as JevResponse
 }
 
 // A score answer carries the probability of each rubric level, keyed "0" to "n-1", next to
@@ -228,7 +230,7 @@ function answerValue(a: JevAnswer | undefined, levels: number, rank: RankBy, nou
 
 async function runBatch(ai: Ai, cfg: MatchConfig, quote: string, batch: Passage[]) {
   if (cfg.mock) return mockJev(quote, batch)
-  const res = await ask(ai, cfg.jevModel, buildState(quote, cfg.prompt), buildQuestions(batch, cfg.useGloss, cfg.prompt))
+  const res = await ask(ai, cfg, buildState(quote, cfg.prompt), buildQuestions(batch, cfg.useGloss, cfg.prompt))
   const n = cfg.prompt === 'noul' ? 2 : RUBRICS[cfg.prompt].length
   const scores: Record<string, number> = {}
   const levels: Record<string, number[]> = {}
@@ -287,7 +289,7 @@ export function pickSentences(values: number[]) {
 async function highlight(ai: Ai, cfg: MatchConfig, quote: string, p: Passage) {
   if (p.sentences.length < 2) return { sentences: [0], inputTokens: 0 }
   if (cfg.mock) return { sentences: [hash(quote + p.id) % p.sentences.length], inputTokens: 0 }
-  const res = await ask(ai, cfg.jevModel, buildHighlightState(quote, p), buildHighlightQuestions(p))
+  const res = await ask(ai, cfg, buildHighlightState(quote, p), buildHighlightQuestions(p))
   const values = p.sentences.map((_, i) => res?.answers?.[`s_${i}`]?.score ?? NaN)
   return { sentences: pickSentences(values), inputTokens: res?.usage?.input_tokens ?? 0 }
 }
@@ -318,7 +320,7 @@ export async function match(
         } catch (err) {
           const error = (err instanceof Error ? err.message : String(err)).slice(0, 300)
           console.error(`jev batch ${index} attempt ${attempt + 1} failed: ${error}`)
-          if (attempt === 1 || OUT_OF_NEURONS.test(error)) {
+          if (attempt === 1 || OUT_OF_BUDGET.test(error)) {
             failed++
             lastError = error
             emit({ type: 'batch', index, ok: false, scores: {}, error })
