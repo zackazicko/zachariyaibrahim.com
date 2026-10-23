@@ -1,0 +1,50 @@
+# Runs scripts/eval-jev.mjs against the branch preview once Workers Builds has deployed it.
+# It runs only when scripts/eval-variants.txt changes, since every case spends part of the
+# daily model budget. That file holds the arguments: variants, and --full for the whole book.
+# The output is also saved as a git note on the commit (refs/notes/jev-eval), so score dumps can
+# be fetched with git and re-analysed without new model calls.
+name: Eval matcher
+
+on:
+  push:
+    branches: [jevitations]
+    paths: [scripts/eval-variants.txt]
+
+permissions:
+  checks: read
+  contents: write
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PREVIEW: https://jevitations-zachariyaibrahimdotcom.zacki917.workers.dev
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Wait for the preview deploy of this commit
+        run: |
+          for i in $(seq 1 60); do
+            state=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs" \
+              --jq '[.check_runs[] | select(.name | startswith("Workers Builds"))][0].conclusion // "pending"')
+            echo "Workers Builds: $state"
+            [ "$state" = "success" ] && sleep 20 && exit 0
+            [ "$state" = "failure" ] && exit 1
+            sleep 15
+          done
+          exit 1
+      - name: Run eval
+        run: |
+          node scripts/eval-jev.mjs "$PREVIEW" $(grep -v '^#' scripts/eval-variants.txt) | tee eval.txt
+          { echo '```'; cat eval.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Save the output as a git note
+        run: |
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin refs/notes/jev-eval:refs/notes/jev-eval || true
+          git notes --ref=jev-eval add -f -F eval.txt HEAD
+          git push origin refs/notes/jev-eval

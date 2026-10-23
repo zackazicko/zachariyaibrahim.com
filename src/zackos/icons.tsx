@@ -114,3 +114,18 @@ export function GermIcon() {
     </svg>
   )
 }
+
+export function BustIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect x="1" y="1" width="30" height="30" fill="#fff" stroke="#000" strokeWidth="1"/>
+      {/* Head in profile, facing right */}
+      <path d="M13 5.5c3-1.5 7-.5 8 3 .4 1.3.3 2.6 0 3.6l1.6 2.6-1.6.6v1.6c0 1.2-1 2-2.2 1.8l-1.6-.2v2.2h-4.7v-3.2c-1.8-1.3-3-3.6-3-6.2 0-2.8 1.3-4.8 3.5-5.8z" fill="#000"/>
+      {/* Laurel */}
+      <path d="M10.6 9.4l2.2 1M10.8 12.2l2.2.3M11.6 15l2-.5" stroke="#fff" strokeWidth="1"/>
+      {/* Shoulders and plinth */}
+      <path d="M8 25.5c0-3 2.5-4.5 5-4.5h6c2.5 0 5 1.5 5 4.5z" fill="#000"/>
+      <rect x="10.5" y="25.5" width="11" height="3" fill="#fff" stroke="#000" strokeWidth="1"/>
+    </svg>
+  )
+}

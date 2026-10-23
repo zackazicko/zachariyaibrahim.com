@@ -1,0 +1,37 @@
+{
+  "name": "zachariyaibrahimdotcom",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-01-25",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "JEV_KV",
+      "id": "0b636e5cc61c4e8086790d8e6b35698d"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "MATCH_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 6,
+        "period": 60
+      }
+    }
+  ],
+  "vars": {
+    "JEV_MODEL": "@cf/cloudflare/clef-flash",
+    "JEV_USE_GLOSS": "true",
+    "JEV_BATCH_SIZE": "60",
+    "JEV_MOCK": "1",
+    "JEV_PROMPT": "point",
+    "JEV_DAILY_TOKENS": "52000000"
+  }
+}

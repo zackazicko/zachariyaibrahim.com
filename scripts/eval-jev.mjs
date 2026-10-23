@@ -1,0 +1,132 @@
+// Scores the matcher's rankings against hand-picked expected passages.
+// Run against a worker with the real AI binding, for example the branch preview:
+//   node scripts/eval-jev.mjs https://jevitations-zachariyaibrahimdotcom.zacki917.workers.dev
+// Compare prompt variants (honoured on preview and local hosts only):
+//   node scripts/eval-jev.mjs <url> score:gloss noul:gloss point:plain agree:gloss:top
+// A variant is prompt:gloss with an optional third part, mean or top, for how scores are ranked.
+// By default each case scores a fixed subset (every expected passage plus every 4th passage
+// as distractors, about a third of the book) so comparisons cost a third of a full search.
+// Pass --full to rank against the whole book, as the app does.
+// --dump prints every passage's score per quote, and its probability per rubric level, so
+// rankings can be re-analysed without new model calls. --calibrate adds unlabelled quotes
+// whose scores are only dumped.
+
+import { readFileSync } from 'node:fs'
+
+const args = process.argv.slice(2)
+const flags = new Set(args.filter(a => a.startsWith('--')))
+const full = flags.has('--full')
+const dump = flags.has('--dump')
+const [base = 'http://localhost:8787', ...variantArgs] = args.filter(a => !a.startsWith('--'))
+const variants = variantArgs.length ? variantArgs : ['default']
+const corpus = JSON.parse(readFileSync(new URL('../src/zackos/jevitations/meditations.json', import.meta.url)))
+const byId = new Map(corpus.passages.map(p => [p.id, p]))
+const textOf = id => byId.get(id)?.sentences.join(' ') ?? ''
+
+// Ids are book.section in George Long's numbering
+const CASES = [
+  ["I'd rather get caught with it than without it", ['3.13', '5.16', '7.61', '10.35', '7.8']],
+  ['The obstacle is the way', ['5.20', '4.1', '8.35']],
+  ['This too shall pass', ['4.42', '9.28', '12.27']],
+  ["Don't sweat the small stuff", ['7.8', '8.49', '4.47']],
+  ['Haters gonna hate', ['5.3', '9.34', '7.15', '11.13']],
+  ['You only live once', ['2.5', '7.69', '4.17', '2.11']],
+  ['Touch grass', ['6.31', '7.3', '3.4', '9.30']],
+  ['Nobody will remember your name in a hundred years', ['4.19', '4.33', '5.33', '6.18', '7.10']],
+]
+for (const [, expected] of CASES) for (const id of expected) if (!byId.has(id)) throw new Error(`no passage ${id}`)
+
+// Everyday sayings with no labels, used to measure how much each passage scores for any quote
+const CALIBRATION = [
+  'Money can\'t buy happiness',
+  'Practice makes perfect',
+  'Fake it till you make it',
+  'Treat people the way you want to be treated',
+  'Work smarter, not harder',
+  'Honesty is the best policy',
+]
+
+const subset = [
+  ...new Set([...CASES.flatMap(([, expected]) => expected), ...corpus.passages.filter((_, i) => i % 4 === 0).map(p => p.id)]),
+]
+
+function headersFor(variant) {
+  const headers = { 'content-type': 'application/json' }
+  if (!full) headers['x-jev-ids'] = subset.join(',')
+  if (dump) headers['x-jev-levels'] = '1'
+  if (variant !== 'default') {
+    const [prompt, gloss, rank] = variant.split(':')
+    headers['x-jev-prompt'] = prompt
+    headers['x-jev-gloss'] = gloss === 'plain' ? 'false' : 'true'
+    if (rank) headers['x-jev-rank'] = rank
+  }
+  return headers
+}
+
+let shownSample = false
+
+async function run(quote, variant) {
+  const res = await fetch(`${base}/api/jev/match`, {
+    method: 'POST',
+    headers: headersFor(variant),
+    body: JSON.stringify({ quote }),
+  })
+  if (res.status === 429 && (await res.clone().json()).error === 'rate_limited') {
+    await new Promise(r => setTimeout(r, 61_000))
+    return run(quote, variant)
+  }
+  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`)
+  const lines = (await res.text()).trim().split('\n').map(l => JSON.parse(l))
+  const levels = Object.assign({}, ...lines.filter(e => e.type === 'batch' && e.levels).map(e => e.levels))
+  const sample = lines.find(e => e.type === 'batch' && e.sample)?.sample
+  if (sample && !shownSample) {
+    shownSample = true
+    console.log(`SAMPLE ANSWER ${JSON.stringify(sample)}`)
+  }
+  return { done: lines.find(e => e.type === 'done'), levels, cache: res.headers.get('x-jev-cache') }
+}
+
+function dumpScores(variant, quote, done, levels) {
+  console.log(`SCORES ${variant} ${JSON.stringify(quote)} ${JSON.stringify(Object.fromEntries(done.ranked.map(r => [r.id, r.score])))}`)
+  if (Object.keys(levels).length) console.log(`LEVELS ${variant} ${JSON.stringify(quote)} ${JSON.stringify(levels)}`)
+}
+
+const snippet = id => textOf(id).slice(0, 70).replace(/\s+/g, ' ')
+
+console.log(full ? `Ranking against all ${corpus.passages.length} passages` : `Ranking against a ${subset.length}-passage subset`)
+
+for (const variant of variants) {
+  console.log(`\n=== ${variant} ===`)
+  let top1 = 0
+  let top5 = 0
+  let rr = 0
+  let tokens = 0
+  for (const [quote, expected] of CASES) {
+    const t = Date.now()
+    const { done, levels, cache } = await run(quote, variant)
+    if (dump) dumpScores(variant, quote, done, levels)
+    if (!done.ranked.length) {
+      console.log(`FAIL  "${quote}"  ${done.error ?? 'no results'}`)
+      continue
+    }
+    const ranks = expected.map(id => done.ranked.findIndex(r => r.id === id) + 1).filter(r => r > 0)
+    const best = Math.min(...ranks)
+    if (best === 1) top1++
+    if (best <= 5) top5++
+    rr += 1 / best
+    tokens += done.inputTokens
+    const spread = `${done.ranked[0].score.toFixed(2)}..${done.ranked[done.ranked.length - 1].score.toFixed(2)}`
+    console.log(`${best <= 5 ? 'ok  ' : 'MISS'} best expected #${best}  ${Date.now() - t}ms ${cache}${done.partial ? ' PARTIAL' : ''}  scores ${spread}  "${quote}"`)
+    for (const r of done.ranked.slice(0, 3)) {
+      console.log(`       ${expected.includes(r.id) ? '*' : ' '} ${r.id.padEnd(9)} ${r.score.toFixed(2)}  ${snippet(r.id)}`)
+      const bold = done.highlights?.[r.id]
+      if (bold) console.log(`                 bold: ${bold.map(i => byId.get(r.id).sentences[i]).join(' / ').slice(0, 160)}`)
+    }
+  }
+  console.log(`--- ${variant}: top1 ${top1}/${CASES.length}, top5 ${top5}/${CASES.length}, MRR ${(rr / CASES.length).toFixed(2)}, ${tokens} input tokens`)
+  if (!flags.has('--calibrate')) continue
+  for (const quote of CALIBRATION) {
+    const { done, levels } = await run(quote, variant)
+    dumpScores(variant, quote, done, levels)
+  }
+}

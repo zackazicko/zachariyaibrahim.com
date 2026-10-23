@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { AppId, WindowState, DesktopIcon, IconPosition } from './types'
-import { PersonIcon, FolderIcon, BarbellIcon, NotepadIcon, SketchpadIcon, GermIcon, TimerIcon } from './icons'
+import { PersonIcon, FolderIcon, BarbellIcon, NotepadIcon, SketchpadIcon, GermIcon, TimerIcon, BustIcon } from './icons'
 import { Window } from './Window'
 import { BootScreen } from './BootScreen'
 
@@ -98,6 +98,7 @@ const ICONS: DesktopIcon[] = [
   { id: 'notepad', label: 'notepad', icon: 'notepad' },
   { id: 'sketchpad', label: 'sketchpad', icon: 'sketchpad' },
   { id: 'pomodoro', label: 'pomodoro', icon: 'timer' },
+  { id: 'jevitations', label: 'jevitations', icon: 'bust' },
 ]
 
 const WINDOW_TITLES: Record<AppId, string> = {
@@ -108,6 +109,7 @@ const WINDOW_TITLES: Record<AppId, string> = {
   notepad: 'Notepad',
   sketchpad: 'Sketchpad',
   pomodoro: 'Pomodoro',
+  jevitations: 'jevitations',
 }
 
 const WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
@@ -118,6 +120,7 @@ const WINDOW_SIZES: Record<AppId, { width: number; height: number }> = {
   notepad: { width: 480, height: 400 },
   sketchpad: { width: 560, height: 450 },
   pomodoro: { width: 300, height: 360 },
+  jevitations: { width: 520, height: 448 },
 }
 
 function getDefaultIconPositions(): Record<AppId, IconPosition> {
@@ -142,6 +145,7 @@ function getIcon(type: DesktopIcon['icon']) {
     case 'sketchpad': return <SketchpadIcon />
     case 'germ': return <GermIcon />
     case 'timer': return <TimerIcon />
+    case 'bust': return <BustIcon />
   }
 }
 
